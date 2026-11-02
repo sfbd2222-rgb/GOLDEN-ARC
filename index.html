@@ -115,6 +115,10 @@
         <button id="tab-btn-company" onclick="switchMainTab('company')" class="px-3 py-2 rounded-lg font-bold text-xs text-slate-400 hover:text-white transition whitespace-nowrap">
           🏢 Companies
         </button>
+        <button id="tab-btn-due" onclick="switchMainTab('due')" class="px-3 py-2 rounded-lg font-bold text-xs text-slate-400 hover:text-white transition whitespace-nowrap flex items-center gap-1">
+          💰 Due List
+          <span id="due-badge" class="px-1.5 py-0.5 rounded-full text-[10px] bg-red-600 text-white font-bold hidden">0</span>
+        </button>
         <button id="tab-btn-renewal" onclick="promptRenewalPassword()" class="px-3 py-2 rounded-lg font-bold text-xs text-yellow-400 hover:bg-yellow-500/10 transition whitespace-nowrap border border-yellow-500/30">
           🔒 QID Renewal Review
           <span id="renewal-badge" class="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-red-600 text-white font-bold hidden">0</span>
@@ -176,6 +180,17 @@
       </div>
 
       <div id="companyGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </section>
+
+    <!-- DUE LIST TAB -->
+    <section id="sec-due" class="hidden space-y-4">
+      <div class="gold-glass p-4 rounded-xl border border-red-500/30 flex justify-between items-center">
+        <div>
+          <h2 class="text-base font-bold text-red-400">💰 Due Collection List (Highest Due First)</h2>
+          <p class="text-xs text-slate-400">Staff members with outstanding balances are sorted automatically with highest due on top.</p>
+        </div>
+      </div>
+      <div id="dueListGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
     </section>
 
     <!-- RENEWAL REVIEW TAB -->
@@ -458,6 +473,7 @@
     if (currentTab === 'directory') renderDirectory();
     else if (currentTab === 'coming') renderComingList();
     else if (currentTab === 'company') renderCompanyList();
+    else if (currentTab === 'due') renderDueList();
     else if (currentTab === 'renewal') renderRenewalList();
   }
 
@@ -473,6 +489,7 @@
       return d < 0 && Math.abs(d) > 80;
     }).length;
     const comingCount = employees.filter(e => e.commingDate && e.commingDate.trim() !== '').length;
+    const dueCount = employees.filter(e => (e.due || 0) > 0).length;
     const renewalCount = employees.filter(e => e.inRenewalReview).length;
     const dueTotal = employees.reduce((sum, e) => sum + (e.due || 0), 0);
 
@@ -485,6 +502,10 @@
     const comingBadge = document.getElementById('coming-badge');
     if (comingCount > 0) { comingBadge.textContent = comingCount; comingBadge.classList.remove('hidden'); }
     else comingBadge.classList.add('hidden');
+
+    const dueBadge = document.getElementById('due-badge');
+    if (dueCount > 0) { dueBadge.textContent = dueCount; dueBadge.classList.remove('hidden'); }
+    else dueBadge.classList.add('hidden');
 
     const renewalBadge = document.getElementById('renewal-badge');
     if (renewalCount > 0) { renewalBadge.textContent = renewalCount; renewalBadge.classList.remove('hidden'); }
@@ -561,7 +582,6 @@
 
     const filtered = selectedCompanyFilter === 'ALL' ? employees : employees.filter(e => (e.company||'Unassigned') === selectedCompanyFilter);
     
-    // Calculate Company Specific Stats
     const compTotal = filtered.length;
     const compExpired = filtered.filter(e => getDaysRemaining(e.rpExDate) < 0).length;
     
@@ -569,6 +589,13 @@
     document.getElementById('comp-stat-expired').textContent = compExpired;
 
     document.getElementById('companyGrid').innerHTML = filtered.length ? filtered.map(e => renderCardHTML(e)).join('') : `<div class="col-span-full gold-glass p-8 text-center text-slate-400">No staff found for this company.</div>`;
+  }
+
+  function renderDueList() {
+    // Sort by due amount descending (highest due first)
+    const list = employees.filter(e => (e.due || 0) > 0).sort((a, b) => (b.due || 0) - (a.due || 0));
+    const grid = document.getElementById('dueListGrid');
+    grid.innerHTML = list.length ? list.map(e => renderCardHTML(e)).join('') : `<div class="col-span-full gold-glass p-8 text-center text-slate-400">No due balances found. All accounts are clear!</div>`;
   }
 
   function downloadCompanyPDF() {
@@ -589,6 +616,7 @@
             <tr style="background: #f1f5f9;">
               <th style="border: 1px solid #cbd5e1; padding: 6px;">QID</th>
               <th style="border: 1px solid #cbd5e1; padding: 6px;">Name</th>
+              <th style="border: 1px solid #cbd5e1; padding: 6px;">Company</th>
               <th style="border: 1px solid #cbd5e1; padding: 6px;">Gender</th>
               <th style="border: 1px solid #cbd5e1; padding: 6px;">Nationality</th>
               <th style="border: 1px solid #cbd5e1; padding: 6px;">Phone</th>
@@ -604,6 +632,7 @@
         <tr>
           <td style="border: 1px solid #cbd5e1; padding: 6px;">${e.qid}</td>
           <td style="border: 1px solid #cbd5e1; padding: 6px;">${e.name}</td>
+          <td style="border: 1px solid #cbd5e1; padding: 6px;">${e.company || '-'}</td>
           <td style="border: 1px solid #cbd5e1; padding: 6px;">${e.gender || '-'}</td>
           <td style="border: 1px solid #cbd5e1; padding: 6px;">${e.nationality || '-'}</td>
           <td style="border: 1px solid #cbd5e1; padding: 6px;">${e.phone || '-'}</td>
@@ -646,7 +675,7 @@
 
   function switchMainTab(tabName) {
     currentTab = tabName;
-    ['directory', 'coming', 'company', 'renewal'].forEach(t => {
+    ['directory', 'coming', 'company', 'due', 'renewal'].forEach(t => {
       const sec = document.getElementById(`sec-${t}`);
       const btn = document.getElementById(`tab-btn-${t}`);
       if (sec) sec.classList.toggle('hidden', t !== tabName);
@@ -683,7 +712,6 @@
 
     document.getElementById('m-input-name').value = emp.name || '';
     
-    // Ensure company exists in dropdown before selecting
     if (emp.company && !customCompanies.includes(emp.company.trim())) {
       customCompanies.push(emp.company.trim());
     }

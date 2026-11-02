@@ -156,7 +156,25 @@
 
     <!-- COMPANY TAB -->
     <section id="sec-company" class="hidden space-y-4">
-      <div id="companyTabsContainer" class="flex items-center gap-2 overflow-x-auto pb-2 border-b border-slate-800"></div>
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 gold-glass p-4 rounded-xl border border-gold-500/30">
+        <div id="companyTabsContainer" class="flex items-center gap-2 overflow-x-auto pb-1 w-full md:w-auto"></div>
+        <button onclick="downloadCompanyPDF()" class="px-4 py-2 bg-gradient-to-r from-gold-600 to-gold-500 text-dark-950 font-bold text-xs rounded-xl shadow whitespace-nowrap flex items-center gap-1.5">
+          📥 Download Company Full Details (PDF)
+        </button>
+      </div>
+
+      <!-- Company Summary Banner -->
+      <div id="companySummaryStats" class="grid grid-cols-2 gap-3">
+        <div class="gold-glass p-3.5 rounded-xl border-l-4 border-gold-400">
+          <div class="text-[11px] text-slate-400 uppercase font-semibold">Company Total Staff</div>
+          <div class="text-xl font-bold text-gold-300 mt-1" id="comp-stat-total">0</div>
+        </div>
+        <div class="gold-glass p-3.5 rounded-xl border-l-4 border-red-500">
+          <div class="text-[11px] text-slate-400 uppercase font-semibold">Company Expired QID</div>
+          <div class="text-xl font-bold text-red-400 mt-1" id="comp-stat-expired">0</div>
+        </div>
+      </div>
+
       <div id="companyGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
     </section>
 
@@ -271,7 +289,6 @@
   </div>
 
 <script>
-  // Notun Web App URL bosano hoyeche
   const API_URL = "https://script.google.com/macros/s/AKfycby3Qp1SdBii6lE--B298RMNAcm-cH19FndBVE6mXiBkzJq_FGLE3Md6JtHW84oKR5Ocdw/exec";
 
   let employees = [];
@@ -479,7 +496,74 @@
     `).join('');
 
     const filtered = selectedCompanyFilter === 'ALL' ? employees : employees.filter(e => (e.company||'Unassigned') === selectedCompanyFilter);
-    document.getElementById('companyGrid').innerHTML = filtered.map(e => renderCardHTML(e)).join('');
+    
+    // Calculate Company Specific Stats
+    const compTotal = filtered.length;
+    const compExpired = filtered.filter(e => getDaysRemaining(e.rpExDate) < 0).length;
+    
+    document.getElementById('comp-stat-total').textContent = compTotal;
+    document.getElementById('comp-stat-expired').textContent = compExpired;
+
+    document.getElementById('companyGrid').innerHTML = filtered.length ? filtered.map(e => renderCardHTML(e)).join('') : `<div class="col-span-full gold-glass p-8 text-center text-slate-400">No staff found for this company.</div>`;
+  }
+
+  function downloadCompanyPDF() {
+    const filtered = selectedCompanyFilter === 'ALL' ? employees : employees.filter(e => (e.company||'Unassigned') === selectedCompanyFilter);
+    if (!filtered.length) return alert("No data to download!");
+
+    const compName = selectedCompanyFilter === 'ALL' ? 'All Companies' : selectedCompanyFilter;
+    const compTotal = filtered.length;
+    const compExpired = filtered.filter(e => getDaysRemaining(e.rpExDate) < 0).length;
+
+    let htmlContent = `
+      <div style="padding: 20px; font-family: Arial, sans-serif; color: #000; background: #fff;">
+        <h2 style="text-align: center; color: #d4af37; margin-bottom: 5px;">GOLDEN ARC TRADING & CONTRACTING</h2>
+        <h3 style="text-align: center; margin-top: 0; font-size: 14px;">Company Report: ${compName}</h3>
+        <p style="font-size: 11px; margin-bottom: 10px;"><strong>Total Staff:</strong> ${compTotal} | <strong>Expired QID:</strong> ${compExpired}</p>
+        <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 10px;">
+          <thead>
+            <tr style="background: #f1f5f9;">
+              <th style="border: 1px solid #cbd5e1; padding: 6px;">QID</th>
+              <th style="border: 1px solid #cbd5e1; padding: 6px;">Name</th>
+              <th style="border: 1px solid #cbd5e1; padding: 6px;">Gender</th>
+              <th style="border: 1px solid #cbd5e1; padding: 6px;">Nationality</th>
+              <th style="border: 1px solid #cbd5e1; padding: 6px;">Phone</th>
+              <th style="border: 1px solid #cbd5e1; padding: 6px;">RP Expire</th>
+              <th style="border: 1px solid #cbd5e1; padding: 6px;">Due (QAR)</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
+
+    filtered.forEach(e => {
+      htmlContent += `
+        <tr>
+          <td style="border: 1px solid #cbd5e1; padding: 6px;">${e.qid}</td>
+          <td style="border: 1px solid #cbd5e1; padding: 6px;">${e.name}</td>
+          <td style="border: 1px solid #cbd5e1; padding: 6px;">${e.gender || '-'}</td>
+          <td style="border: 1px solid #cbd5e1; padding: 6px;">${e.nationality || '-'}</td>
+          <td style="border: 1px solid #cbd5e1; padding: 6px;">${e.phone || '-'}</td>
+          <td style="border: 1px solid #cbd5e1; padding: 6px;">${e.rpExDate || '-'}</td>
+          <td style="border: 1px solid #cbd5e1; padding: 6px;">${e.due || 0}</td>
+        </tr>
+      `;
+    });
+
+    htmlContent += `
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    const opt = {
+      margin:       0.5,
+      filename:     `Company_Report_${compName.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2 },
+      jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
+    };
+
+    html2pdf().from(htmlContent).save();
   }
 
   function renderRenewalList() {

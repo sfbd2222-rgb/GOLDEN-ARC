@@ -208,7 +208,13 @@
         <div class="space-y-3 bg-dark-900/80 p-4 rounded-xl border border-slate-800 text-xs">
           <h4 class="font-bold text-gold-400 uppercase border-b border-slate-800 pb-2">👤 Personal & QID Info</h4>
           <div><label class="text-slate-400 block mb-1">Full Name</label><input type="text" id="m-input-name" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
-          <div><label class="text-slate-400 block mb-1">Company Name</label><input type="text" id="m-input-company" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
+          <div>
+            <label class="text-slate-400 block mb-1">Company Name</label>
+            <div class="flex gap-1">
+              <select id="m-input-company" onchange="handleCompanyDropdownChange(this)" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></select>
+              <button type="button" onclick="promptAddNewCompany('m-input-company')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-gold-400 font-bold rounded border border-gold-500/30 text-xs" title="Add New Company">➕</button>
+            </div>
+          </div>
           <div class="grid grid-cols-2 gap-2">
             <div><label class="text-slate-400 block mb-1">Gender</label><select id="m-input-gender" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"><option value="Male">Male</option><option value="Female">Female</option></select></div>
             <div><label class="text-slate-400 block mb-1">Nationality</label><input type="text" id="m-input-nation" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
@@ -267,7 +273,13 @@
       <form onsubmit="handleCreateEmployee(event)" class="space-y-3">
         <div><label class="text-slate-400 block mb-1">QID Number *</label><input type="text" id="add-qid" placeholder="QID Number *" required class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white mono"></div>
         <div><label class="text-slate-400 block mb-1">Full Name *</label><input type="text" id="add-name" placeholder="Full Name *" required class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
-        <div><label class="text-slate-400 block mb-1">Company Name</label><input type="text" id="add-company" value="GOLDEN ARC TRADING & CONTRACTING COMPANY" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
+        <div>
+          <label class="text-slate-400 block mb-1">Company Name</label>
+          <div class="flex gap-1">
+            <select id="add-company" onchange="handleCompanyDropdownChange(this)" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></select>
+            <button type="button" onclick="promptAddNewCompany('add-company')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-gold-400 font-bold rounded border border-gold-500/30 text-xs" title="Add New Company">➕</button>
+          </div>
+        </div>
         <div class="grid grid-cols-2 gap-2">
           <div><label class="text-slate-400 block mb-1">Gender</label><select id="add-gender" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"><option value="Male">Male</option><option value="Female">Female</option></select></div>
           <div><label class="text-slate-400 block mb-1">Nationality</label><input type="text" id="add-nation" placeholder="e.g. Nepali, Indian" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
@@ -292,6 +304,7 @@
   const API_URL = "https://script.google.com/macros/s/AKfycby3Qp1SdBii6lE--B298RMNAcm-cH19FndBVE6mXiBkzJq_FGLE3Md6JtHW84oKR5Ocdw/exec";
 
   let employees = [];
+  let customCompanies = ["GOLDEN ARC TRADING & CONTRACTING COMPANY"];
   let currentTab = 'directory';
   let activeFilter = 'all';
   let selectedCompanyFilter = 'ALL';
@@ -314,6 +327,7 @@
             commingDate: cleanDateStr(item.commingDate),
             inRenewalReview: (item.qidStatus === 'inReview' || item.renewStatus === 'inReview')
           }));
+          updateCompanyListFromData();
           updateSyncStatus("Google Sheet Live", "bg-emerald-400");
           renderApp();
           return;
@@ -323,6 +337,56 @@
     } catch (e) {
       console.error(e);
       updateSyncStatus("Sync Error", "bg-red-400");
+    }
+  }
+
+  function updateCompanyListFromData() {
+    employees.forEach(e => {
+      if (e.company && !customCompanies.includes(e.company.trim())) {
+        customCompanies.push(e.company.trim());
+      }
+    });
+    populateCompanyDropdowns();
+  }
+
+  function populateCompanyDropdowns(selectedValModal = '', selectedValAdd = '') {
+    const optionsHtml = customCompanies.map(c => `<option value="${c}">${c}</option>`).join('') +
+                        `<option value="__ADD_NEW__" class="text-yellow-400 font-bold">➕ Add New Company...</option>`;
+    
+    const modalSelect = document.getElementById('m-input-company');
+    const addSelect = document.getElementById('add-company');
+
+    if (modalSelect) modalSelect.innerHTML = optionsHtml;
+    if (addSelect) addSelect.innerHTML = optionsHtml;
+
+    if (selectedValModal && modalSelect) modalSelect.value = selectedValModal;
+    if (selectedValAdd && addSelect) addSelect.value = selectedValAdd;
+  }
+
+  function handleCompanyDropdownChange(selectElement) {
+    if (selectElement.value === '__ADD_NEW__') {
+      promptAddNewCompany(selectElement.id);
+    }
+  }
+
+  function promptAddNewCompany(selectId) {
+    const password = prompt("Enter Password to Add New Company:");
+    if (password === "SFBD") {
+      const newComp = prompt("Enter New Company Name:");
+      if (newComp && newComp.trim() !== '') {
+        const compName = newComp.trim().toUpperCase();
+        if (!customCompanies.includes(compName)) {
+          customCompanies.push(compName);
+        }
+        populateCompanyDropdowns();
+        document.getElementById(selectId).value = compName;
+        alert(`Company "${compName}" added successfully!`);
+      } else {
+        document.getElementById(selectId).selectedIndex = 0;
+      }
+    } else {
+      alert("Wrong Password! Access Denied.");
+      document.getElementById(selectId).selectedIndex = 0;
     }
   }
 
@@ -618,7 +682,13 @@
     document.getElementById('m-status-badge').innerHTML = getStatusBadge(getDaysRemaining(emp.rpExDate));
 
     document.getElementById('m-input-name').value = emp.name || '';
-    document.getElementById('m-input-company').value = emp.company || '';
+    
+    // Ensure company exists in dropdown before selecting
+    if (emp.company && !customCompanies.includes(emp.company.trim())) {
+      customCompanies.push(emp.company.trim());
+    }
+    populateCompanyDropdowns(emp.company || '');
+
     document.getElementById('m-input-gender').value = emp.gender || 'Male';
     document.getElementById('m-input-nation').value = emp.nationality || '';
     document.getElementById('m-input-dob').value = emp.dob || '';
@@ -728,6 +798,11 @@
     postToSheet('addOrUpdate', { employee: emp });
   }
 
+  function openAddEmployeeModal() {
+    populateCompanyDropdowns();
+    document.getElementById('addEmployeeModal').classList.remove('hidden');
+  }
+
   function handleCreateEmployee(e) {
     e.preventDefault();
     const newEmp = {
@@ -754,7 +829,6 @@
     document.getElementById('syncStatus').innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${dotColorClass} animate-pulse"></span> ${text}`;
   }
   function setFilter(f) { activeFilter = f; renderApp(); }
-  function openAddEmployeeModal() { document.getElementById('addEmployeeModal').classList.remove('hidden'); }
   function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 </script>
 </body>

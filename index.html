@@ -360,6 +360,10 @@
           updateCompanyListFromData();
           updateSyncStatus("Google Sheet Live", "bg-emerald-400");
           renderApp();
+          // If modal is open, update modal UI instantly with fresh data
+          if (activeEmployeeQid) {
+            openEmployeeModal(activeEmployeeQid, true);
+          }
           return;
         }
       }
@@ -443,10 +447,35 @@
         body: JSON.stringify({ action: action, ...payload })
       });
       updateSyncStatus("Google Sheet Live", "bg-emerald-400");
-      setTimeout(fetchSheetData, 1200);
+      // Instant local state update for zero-delay UI refresh
+      applyInstantLocalUpdate(action, payload);
+      setTimeout(fetchSheetData, 800);
     } catch (e) {
       updateSyncStatus("Save Failed", "bg-red-400");
       alert("Failed to save data to Google Sheet: " + e.message);
+    }
+  }
+
+  function applyInstantLocalUpdate(action, payload) {
+    if (action === 'addOrUpdate' && payload.employee) {
+      const empData = payload.employee;
+      let index = employees.findIndex(e => String(e.qid) === String(empData.qid));
+      
+      if (payload.transactionLog) {
+        if (!empData.history) empData.history = [];
+        empData.history.unshift(payload.transactionLog);
+      }
+
+      if (index >= 0) {
+        employees[index] = { ...employees[index], ...empData };
+      } else {
+        employees.push(empData);
+      }
+
+      renderApp();
+      if (activeEmployeeQid === String(empData.qid)) {
+        openEmployeeModal(empData.qid, true);
+      }
     }
   }
 
@@ -630,7 +659,6 @@
       }
     });
 
-    // Sort by date newest first
     allTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     const grid = document.getElementById('payHistoryGrid');
@@ -754,31 +782,33 @@
     }
   }
 
-  function openEmployeeModal(qid) {
-    const emp = employees.find(e => e.qid === qid);
+  function openEmployeeModal(qid, isLiveRefresh = false) {
+    const emp = employees.find(e => String(e.qid) === String(qid));
     if (!emp) return;
 
-    activeEmployeeQid = qid;
+    activeEmployeeQid = String(qid);
     document.getElementById('m-name').textContent = emp.name;
     document.getElementById('m-qid').textContent = emp.qid;
     document.getElementById('m-company').textContent = emp.company || '-';
     document.getElementById('m-status-badge').innerHTML = getStatusBadge(getDaysRemaining(emp.rpExDate));
 
-    document.getElementById('m-input-name').value = emp.name || '';
-    
-    if (emp.company && !customCompanies.includes(emp.company.trim())) {
-      customCompanies.push(emp.company.trim());
-    }
-    populateCompanyDropdowns(emp.company || '');
+    if (!isLiveRefresh) {
+      document.getElementById('m-input-name').value = emp.name || '';
+      
+      if (emp.company && !customCompanies.includes(emp.company.trim())) {
+        customCompanies.push(emp.company.trim());
+      }
+      populateCompanyDropdowns(emp.company || '');
 
-    document.getElementById('m-input-gender').value = emp.gender || 'Male';
-    document.getElementById('m-input-nation').value = emp.nationality || '';
-    document.getElementById('m-input-dob').value = emp.dob || '';
-    document.getElementById('m-input-phone').value = emp.phone || '';
-    document.getElementById('m-input-issue').value = emp.rpIssueDate || '';
-    document.getElementById('m-input-expire').value = emp.rpExDate || '';
-    document.getElementById('m-input-coming').value = emp.commingDate || '';
-    document.getElementById('m-input-note').value = emp.note || '';
+      document.getElementById('m-input-gender').value = emp.gender || 'Male';
+      document.getElementById('m-input-nation').value = emp.nationality || '';
+      document.getElementById('m-input-dob').value = emp.dob || '';
+      document.getElementById('m-input-phone').value = emp.phone || '';
+      document.getElementById('m-input-issue').value = emp.rpIssueDate || '';
+      document.getElementById('m-input-expire').value = emp.rpExDate || '';
+      document.getElementById('m-input-coming').value = emp.commingDate || '';
+      document.getElementById('m-input-note').value = emp.note || '';
+    }
 
     document.getElementById('m-input-total').value = emp.total || 0;
     document.getElementById('m-ledger-total').textContent = (emp.total || 0) + ' QAR';
@@ -786,7 +816,9 @@
     document.getElementById('m-ledger-due').textContent = (emp.due || 0) + ' QAR';
 
     renderHistoryLogs(emp);
-    document.getElementById('employeeModal').classList.remove('hidden');
+    if (!isLiveRefresh) {
+      document.getElementById('employeeModal').classList.remove('hidden');
+    }
   }
 
   function renderHistoryLogs(emp) {
@@ -800,7 +832,7 @@
   }
 
   function saveProfileChanges() {
-    const emp = employees.find(e => e.qid === activeEmployeeQid);
+    const emp = employees.find(e => String(e.qid) === String(activeEmployeeQid));
     if (!emp) return;
 
     emp.name = document.getElementById('m-input-name').value.trim();
@@ -815,23 +847,21 @@
     emp.note = document.getElementById('m-input-note').value.trim();
 
     postToSheet('addOrUpdate', { employee: emp });
-    alert("Saved successfully to Google Sheet!");
   }
 
   function flagForRenewalWithPassword() {
     if (prompt("Enter Password to Flag for Renewal:") === "SFBD") {
-      const emp = employees.find(e => e.qid === activeEmployeeQid);
+      const emp = employees.find(e => String(e.qid) === String(activeEmployeeQid));
       emp.qidStatus = 'inReview';
       emp.renewStatus = 'inReview';
       emp.inRenewalReview = true;
       postToSheet('addOrUpdate', { employee: emp });
-      alert("Flagged for Renewal!");
     } else alert("Wrong Password!");
   }
 
   function approveRenewalWithPassword(qid) {
     if (prompt("Enter Password to Approve Extension:") === "SFBD") {
-      const emp = employees.find(e => e.qid === qid);
+      const emp = employees.find(e => String(e.qid) === String(qid));
       let curr = emp.rpExDate ? new Date(emp.rpExDate) : new Date();
       if (isNaN(curr.getTime())) curr = new Date();
       curr.setFullYear(curr.getFullYear() + 1);
@@ -845,12 +875,11 @@
       emp.renewStatus = '';
       emp.inRenewalReview = false;
       postToSheet('addOrUpdate', { employee: emp });
-      alert(`Approved! Extended to ${emp.rpExDate}`);
     } else alert("Wrong Password!");
   }
 
   function addPaymentTransaction() {
-    const emp = employees.find(e => e.qid === activeEmployeeQid);
+    const emp = employees.find(e => String(e.qid) === String(activeEmployeeQid));
     const amt = parseFloat(document.getElementById('pay-amount').value);
     const note = document.getElementById('pay-note').value.trim() || 'Deposit';
     if (!amt || amt <= 0) return alert("Enter valid amount");
@@ -859,33 +888,28 @@
     emp.due = Math.max(0, emp.total - emp.pay);
     const tx = { date: new Date().toISOString().split('T')[0], amount: amt, note: note };
 
-    // Auto clear input fields after successful payment add
     document.getElementById('pay-amount').value = '';
     document.getElementById('pay-note').value = '';
 
     postToSheet('addOrUpdate', { employee: emp, transactionLog: tx });
-    alert("Transection saved to Sheet!");
   }
 
   function clearAllPaymentWithPassword() {
     if (prompt("Enter Password to Reset Ledger:") === "SFBD") {
-      const emp = employees.find(e => e.qid === activeEmployeeQid);
+      const emp = employees.find(e => String(e.qid) === String(activeEmployeeQid));
       emp.total = 0; emp.pay = 0; emp.due = 0;
       const tx = { date: new Date().toISOString().split('T')[0], amount: 0, note: 'Reset (Password: SFBD)' };
       postToSheet('addOrUpdate', { employee: emp, transactionLog: tx });
-      alert("Ledger Reset!");
     } else alert("Access Denied.");
   }
 
   function updateTotalFee() {
-    const emp = employees.find(e => e.qid === activeEmployeeQid);
+    const emp = employees.find(e => String(e.qid) === String(activeEmployeeQid));
     emp.total = parseFloat(document.getElementById('m-input-total').value) || 0;
     emp.due = Math.max(0, emp.total - emp.pay);
     
     document.getElementById('m-input-total').value = '';
-
     postToSheet('addOrUpdate', { employee: emp });
-    alert("Total fee updated successfully!");
   }
 
   function openAddEmployeeModal() {
@@ -909,7 +933,8 @@
       note: document.getElementById('add-note').value.trim(),
       total: parseFloat(document.getElementById('add-total').value) || 0, 
       pay: 0, 
-      due: parseFloat(document.getElementById('add-total').value) || 0
+      due: parseFloat(document.getElementById('add-total').value) || 0,
+      history: []
     };
     postToSheet('addOrUpdate', { employee: newEmp });
     closeModal('addEmployeeModal');
@@ -919,7 +944,10 @@
     document.getElementById('syncStatus').innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${dotColorClass} animate-pulse"></span> ${text}`;
   }
   function setFilter(f) { activeFilter = f; renderApp(); }
-  function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+  function closeModal(id) { 
+    document.getElementById(id).classList.add('hidden'); 
+    if(id === 'employeeModal') activeEmployeeQid = null;
+  }
 </script>
 </body>
 </html>

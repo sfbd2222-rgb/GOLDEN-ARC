@@ -592,7 +592,6 @@
   }
 
   function renderDueList() {
-    // Sort by due amount descending (highest due first)
     const list = employees.filter(e => (e.due || 0) > 0).sort((a, b) => (b.due || 0) - (a.due || 0));
     const grid = document.getElementById('dueListGrid');
     grid.innerHTML = list.length ? list.map(e => renderCardHTML(e)).join('') : `<div class="col-span-full gold-glass p-8 text-center text-slate-400">No due balances found. All accounts are clear!</div>`;
@@ -805,6 +804,10 @@
     emp.due = Math.max(0, emp.total - emp.pay);
     const tx = { date: new Date().toISOString().split('T')[0], amount: amt, note: note };
 
+    // Auto clear input fields after successful payment add
+    document.getElementById('pay-amount').value = '';
+    document.getElementById('pay-note').value = '';
+
     postToSheet('addOrUpdate', { employee: emp, transactionLog: tx });
     alert("Transection saved to Sheet!");
   }
@@ -823,7 +826,12 @@
     const emp = employees.find(e => e.qid === activeEmployeeQid);
     emp.total = parseFloat(document.getElementById('m-input-total').value) || 0;
     emp.due = Math.max(0, emp.total - emp.pay);
+    
+    // Auto clear total fee input field after update
+    document.getElementById('m-input-total').value = '';
+
     postToSheet('addOrUpdate', { employee: emp });
+    alert("Total fee updated successfully!");
   }
 
   function openAddEmployeeModal() {

@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>GOLDEN ARC - Live Google Sheet Portal</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- HTML2PDF Library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          gold: {
+            50: '#fffbeb', 100: '#fef3c7', 300: '#fde047', 400: '#facc15',
+            500: '#d4af37', 600: '#ca8a04', 700: '#a16207', 800: '#854d0e', 900: '#713f12'
+          },
+          dark: { 800: '#1e293b', 900: '#0f172a', 950: '#090d16' }
+        }
+      }
+    }
+  }
+</script>
+<style>
+  @import url('https://cdn.jsdelivr.net/fontsource/css/inter@latest/index.css');
+  @import url('https://cdn.jsdelivr.net/fontsource/css/jetbrains-mono@latest/index.css');
+  body { font-family: 'Inter', sans-serif; background-color: #090d16; color: #e2e8f0; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: #0f172a; }
+  ::-webkit-scrollbar-thumb { background: #d4af37; border-radius: 4px; }
+  .gold-glass {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.75) 0%, rgba(15, 23, 42, 0.9) 100%);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+  }
+</style>
+</head>
+<body class="min-h-screen pb-12">
+
+  <!-- TOP HEADER -->
+  <header class="sticky top-0 z-40 gold-glass border-b border-gold-600/30 px-4 py-4 shadow-2xl">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-gold-700 via-gold-500 to-yellow-200 flex items-center justify-center text-dark-950 font-black text-2xl shadow-lg border border-gold-300">
+          GA
+        </div>
+        <div>
+          <h1 class="text-lg md:text-xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-gold-300 via-yellow-100 to-gold-500 uppercase">
+            Golden Arc Trading & Contracting
+          </h1>
+          <p class="text-xs text-gold-500/90 font-medium flex items-center gap-2">
+            <span>Live Sheet Portal</span>
+            <span id="syncStatus" class="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-700/50">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Google Sheet Live
+            </span>
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 flex-wrap">
+        <button onclick="fetchSheetData()" class="px-3 py-2 rounded-lg bg-dark-800 hover:bg-dark-700 text-gold-400 font-semibold text-xs border border-gold-500/35 transition flex items-center gap-1">
+          🔄 Refresh Data
+        </button>
+        <button onclick="openAddEmployeeModal()" class="px-4 py-2 rounded-lg bg-gradient-to-r from-gold-600 to-gold-500 hover:from-gold-500 text-dark-950 font-bold text-xs tracking-wider uppercase transition shadow-lg">
+          ➕ Add Employee
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 mt-6">
+    
+    <!-- STATS COUNTER GRID -->
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+      <div onclick="setFilter('all')" class="cursor-pointer gold-glass p-3.5 rounded-xl border-l-4 border-gold-500 hover:scale-[1.01] transition">
+        <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Staff</div>
+        <div class="text-2xl font-extrabold text-gold-400 mt-1" id="stat-total">0</div>
+      </div>
+
+      <div onclick="setFilter('expired')" class="cursor-pointer gold-glass p-3.5 rounded-xl border-l-4 border-red-500 hover:scale-[1.01] transition">
+        <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Expired QID</div>
+        <div class="text-2xl font-extrabold text-red-500 mt-1" id="stat-expired">0</div>
+      </div>
+
+      <div onclick="setFilter('critical30')" class="cursor-pointer gold-glass p-3.5 rounded-xl border-l-4 border-amber-500 hover:scale-[1.01] transition">
+        <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">30 Days Left (Safe)</div>
+        <div class="text-2xl font-extrabold text-amber-400 mt-1" id="stat-critical30">0</div>
+      </div>
+
+      <div onclick="setFilter('highrisk')" class="cursor-pointer gold-glass p-3.5 rounded-xl border-l-4 border-yellow-500 hover:scale-[1.01] transition">
+        <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">High Risk (>80d Expired)</div>
+        <div class="text-2xl font-extrabold text-yellow-400 mt-1" id="stat-highrisk">0</div>
+      </div>
+
+      <div onclick="setFilter('due')" class="cursor-pointer gold-glass p-3.5 rounded-xl border-l-4 border-emerald-500 hover:scale-[1.01] transition col-span-2 md:col-span-1">
+        <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Ledger Due</div>
+        <div class="text-xl font-extrabold text-emerald-400 mt-1 mono" id="stat-due">0 QAR</div>
+      </div>
+    </div>
+
+    <!-- TABS AND SEARCH -->
+    <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mb-6">
+      <div class="flex items-center gap-1.5 p-1 bg-dark-900 rounded-xl border border-slate-800 overflow-x-auto">
+        <button id="tab-btn-directory" onclick="switchMainTab('directory')" class="px-3 py-2 rounded-lg font-bold text-xs transition bg-gradient-to-r from-gold-600 to-gold-500 text-dark-950 shadow whitespace-nowrap">
+          📋 Staff Directory
+        </button>
+        <button id="tab-btn-coming" onclick="switchMainTab('coming')" class="px-3 py-2 rounded-lg font-bold text-xs text-slate-400 hover:text-white transition whitespace-nowrap flex items-center gap-1">
+          📅 Coming List
+          <span id="coming-badge" class="px-1.5 py-0.5 rounded-full text-[10px] bg-blue-600 text-white font-bold hidden">0</span>
+        </button>
+        <button id="tab-btn-company" onclick="switchMainTab('company')" class="px-3 py-2 rounded-lg font-bold text-xs text-slate-400 hover:text-white transition whitespace-nowrap">
+          🏢 Companies
+        </button>
+        <button id="tab-btn-renewal" onclick="promptRenewalPassword()" class="px-3 py-2 rounded-lg font-bold text-xs text-yellow-400 hover:bg-yellow-500/10 transition whitespace-nowrap border border-yellow-500/30">
+          🔒 QID Renewal Review
+          <span id="renewal-badge" class="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-red-600 text-white font-bold hidden">0</span>
+        </button>
+      </div>
+
+      <div class="flex items-center gap-2 flex-1 max-w-xl">
+        <div class="relative flex-1">
+          <input type="text" id="searchInput" oninput="renderApp()" placeholder="Search Name, QID, Phone, Company..." 
+                 class="w-full pl-9 pr-4 py-2 rounded-xl bg-dark-900 border border-slate-700 text-slate-100 text-xs focus:outline-none focus:border-gold-500 transition">
+          <span class="absolute left-3 top-2.5 text-slate-500 text-xs">🔍</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- DIRECTORY TAB -->
+    <section id="sec-directory" class="space-y-4">
+      <div class="flex items-center justify-between text-xs text-slate-400 px-1">
+        <span id="showing-count-text">Showing 0 employees</span>
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <span class="text-slate-500 text-[11px]">Filter:</span>
+          <button onclick="setFilter('all')" class="px-2 py-0.5 rounded text-[11px] font-medium bg-gold-500/20 text-gold-400 border border-gold-500/30">All</button>
+          <button onclick="setFilter('expired')" class="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-800 text-slate-400 border border-slate-700">🔴 Expired</button>
+          <button onclick="setFilter('critical30')" class="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-800 text-slate-400 border border-slate-700">🟨 Safe (&le;30 Days Left)</button>
+          <button onclick="setFilter('highrisk')" class="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-800 text-slate-400 border border-slate-700">🚨 Expired >80 Days</button>
+          <button onclick="setFilter('due')" class="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-800 text-slate-400 border border-slate-700">💰 Has Due</button>
+        </div>
+      </div>
+      <div id="employeeGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </section>
+
+    <!-- COMING LIST TAB -->
+    <section id="sec-coming" class="hidden space-y-4">
+      <div class="gold-glass p-4 rounded-xl border border-blue-500/30">
+        <h2 class="text-base font-bold text-blue-400">📅 Upcoming & Schedule Coming Date List</h2>
+      </div>
+      <div id="comingListGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </section>
+
+    <!-- COMPANY TAB -->
+    <section id="sec-company" class="hidden space-y-4">
+      <div id="companyTabsContainer" class="flex items-center gap-2 overflow-x-auto pb-2 border-b border-slate-800"></div>
+      <div id="companyGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </section>
+
+    <!-- RENEWAL REVIEW TAB -->
+    <section id="sec-renewal" class="hidden space-y-4">
+      <div class="gold-glass p-4 rounded-xl border border-yellow-500/30 flex justify-between items-center">
+        <div>
+          <h2 class="text-base font-bold text-yellow-400">🔒 QID Renewal Review Queue (Password Protected)</h2>
+          <p class="text-xs text-slate-400">Approve extensions or manage pending QID renewals here.</p>
+        </div>
+      </div>
+      <div id="renewalQueueGrid" class="space-y-3"></div>
+    </section>
+  </main>
+
+  <!-- MODAL: PROFILE & LEDGER -->
+  <div id="employeeModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden">
+    <div class="gold-glass rounded-2xl border border-gold-500/40 w-full max-w-4xl max-h-[92vh] overflow-y-auto shadow-2xl p-6">
+      <div class="flex items-start justify-between border-b border-slate-700/60 pb-4 mb-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <h3 class="text-xl font-bold text-gold-300" id="m-name">---</h3>
+            <span id="m-status-badge"></span>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">QID: <span id="m-qid" class="mono font-bold text-gold-400">---</span> • <span id="m-company">---</span></p>
+        </div>
+        <button onclick="closeModal('employeeModal')" class="w-8 h-8 rounded-full bg-slate-800 text-slate-400 font-bold text-sm">✕</button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="space-y-3 bg-dark-900/80 p-4 rounded-xl border border-slate-800 text-xs">
+          <h4 class="font-bold text-gold-400 uppercase border-b border-slate-800 pb-2">👤 Personal & QID Info</h4>
+          <div><label class="text-slate-400 block mb-1">Full Name</label><input type="text" id="m-input-name" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
+          <div><label class="text-slate-400 block mb-1">Company Name</label><input type="text" id="m-input-company" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
+          <div class="grid grid-cols-2 gap-2">
+            <div><label class="text-slate-400 block mb-1">Gender</label><select id="m-input-gender" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"><option value="Male">Male</option><option value="Female">Female</option></select></div>
+            <div><label class="text-slate-400 block mb-1">Nationality</label><input type="text" id="m-input-nation" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div><label class="text-slate-400 block mb-1">DOB</label><input type="date" id="m-input-dob" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
+            <div><label class="text-slate-400 block mb-1">Phone</label><input type="text" id="m-input-phone" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div><label class="text-slate-400 block mb-1">RP Issue Date</label><input type="date" id="m-input-issue" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
+            <div><label class="text-slate-400 block mb-1">RP Expire Date</label><input type="date" id="m-input-expire" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
+          </div>
+          <div><label class="text-blue-400 font-bold block mb-1">Coming Date</label><input type="date" id="m-input-coming" class="w-full bg-slate-950 border border-blue-600/50 rounded p-2 text-white"></div>
+          <div><label class="text-slate-400 block mb-1">Note</label><textarea id="m-input-note" rows="2" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></textarea></div>
+
+          <div class="space-y-2 pt-2 border-t border-slate-800">
+            <button onclick="saveProfileChanges()" class="w-full py-2 bg-gradient-to-r from-gold-600 to-gold-500 text-dark-950 font-bold rounded shadow">💾 Save Changes to Google Sheet</button>
+            <button onclick="flagForRenewalWithPassword()" id="btn-toggle-review" class="w-full py-1.5 bg-yellow-950/80 text-yellow-300 font-bold rounded border border-yellow-700/50">🔒 Flag for Renewal (Requires Password)</button>
+          </div>
+        </div>
+
+        <div class="space-y-3 bg-dark-900/80 p-4 rounded-xl border border-slate-800 text-xs">
+          <h4 class="font-bold text-emerald-400 uppercase border-b border-slate-800 pb-2">💵 Ledger & Transection History</h4>
+          <div class="flex gap-2">
+            <input type="number" id="m-input-total" class="flex-1 bg-slate-950 border border-slate-700 rounded p-2 text-white mono" placeholder="Total Fee">
+            <button onclick="updateTotalFee()" class="px-3 py-2 bg-slate-800 text-gold-400 font-bold rounded border border-gold-500/30">Update</button>
+          </div>
+          <div class="grid grid-cols-3 gap-2 bg-slate-950 p-3 rounded-lg border border-slate-800 text-center">
+            <div><div class="text-[10px] text-slate-400">TOTAL</div><div id="m-ledger-total" class="font-bold text-white mono">0 QAR</div></div>
+            <div><div class="text-[10px] text-slate-400">PAID</div><div id="m-ledger-pay" class="font-bold text-emerald-400 mono">0 QAR</div></div>
+            <div><div class="text-[10px] text-slate-400">DUE</div><div id="m-ledger-due" class="font-bold text-red-400 mono">0 QAR</div></div>
+          </div>
+          <div class="space-y-2 bg-dark-950 p-3 rounded-lg border border-slate-800">
+            <span class="font-bold text-gold-400 block">➕ Deposit Payment</span>
+            <input type="number" id="pay-amount" placeholder="Amount (QAR)" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
+            <input type="text" id="pay-note" placeholder="Transection Note" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
+            <button onclick="addPaymentTransaction()" class="w-full py-1.5 bg-emerald-600 text-white font-bold rounded transition">💰 Add & Save to Transection History</button>
+          </div>
+          <button onclick="clearAllPaymentWithPassword()" class="w-full py-1.5 bg-red-950/80 text-red-300 font-bold rounded border border-red-800/60">🔒 Clear Payment (Reset 0 - Password: SFBD)</button>
+          <div>
+            <span class="font-bold text-slate-400 block mb-1">Transection History Logs (Sheet2)</span>
+            <div id="m-pay-history" class="max-h-24 overflow-y-auto space-y-1 pr-1"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD EMPLOYEE -->
+  <div id="addEmployeeModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden">
+    <div class="gold-glass rounded-2xl border border-gold-500/40 w-full max-w-lg p-6 text-xs space-y-3 max-h-[92vh] overflow-y-auto">
+      <div class="flex justify-between border-b border-slate-700 pb-2">
+        <h3 class="font-bold text-gold-300 text-sm">➕ Add New Staff Record</h3>
+        <button onclick="closeModal('addEmployeeModal')" class="text-slate-400 font-bold">✕</button>
+      </div>
+      <form onsubmit="handleCreateEmployee(event)" class="space-y-3">
+        <div><label class="text-slate-400 block mb-1">QID Number *</label><input type="text" id="add-qid" placeholder="QID Number *" required class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white mono"></div>
+        <div><label class="text-slate-400 block mb-1">Full Name *</label><input type="text" id="add-name" placeholder="Full Name *" required class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
+        <div><label class="text-slate-400 block mb-1">Company Name</label><input type="text" id="add-company" value="GOLDEN ARC TRADING & CONTRACTING COMPANY" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
+        <div class="grid grid-cols-2 gap-2">
+          <div><label class="text-slate-400 block mb-1">Gender</label><select id="add-gender" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"><option value="Male">Male</option><option value="Female">Female</option></select></div>
+          <div><label class="text-slate-400 block mb-1">Nationality</label><input type="text" id="add-nation" placeholder="e.g. Nepali, Indian" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div><label class="text-slate-400 block mb-1">DOB</label><input type="date" id="add-dob" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
+          <div><label class="text-slate-400 block mb-1">Phone</label><input type="text" id="add-phone" placeholder="Phone" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div><label class="text-slate-400 block mb-1">RP Issue Date</label><input type="date" id="add-issue" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
+          <div><label class="text-slate-400 block mb-1">RP Expire Date</label><input type="date" id="add-expire" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
+        </div>
+        <div><label class="text-blue-400 font-bold block mb-1">Coming Date</label><input type="date" id="add-coming" class="w-full bg-slate-950 border border-blue-600/50 rounded p-2 text-white"></div>
+        <div><label class="text-slate-400 block mb-1">Note</label><textarea id="add-note" rows="2" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></textarea></div>
+        <div><label class="text-slate-400 block mb-1">Total Agreed Fee (QAR)</label><input type="number" id="add-total" value="0" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
+        <button type="submit" class="w-full py-2.5 bg-gradient-to-r from-gold-600 to-gold-500 text-dark-950 font-bold rounded shadow">Create Record in Google Sheet</button>
+      </form>
+    </div>
+  </div>
+
+<script>
+  // Notun Web App URL bosano hoyeche
+  const API_URL = "https://script.google.com/macros/s/AKfycby3Qp1SdBii6lE--B298RMNAcm-cH19FndBVE6mXiBkzJq_FGLE3Md6JtHW84oKR5Ocdw/exec";
+
+  let employees = [];
+  let currentTab = 'directory';
+  let activeFilter = 'all';
+  let selectedCompanyFilter = 'ALL';
+  let activeEmployeeQid = null;
+
+  window.addEventListener('DOMContentLoaded', () => { fetchSheetData(); });
+
+  async function fetchSheetData() {
+    updateSyncStatus("Syncing Live Sheet...", "bg-amber-500");
+    try {
+      const res = await fetch(API_URL);
+      if (res.ok) {
+        const raw = await res.json();
+        if (Array.isArray(raw)) {
+          employees = raw.map(item => ({
+            ...item,
+            dob: cleanDateStr(item.dob),
+            rpIssueDate: cleanDateStr(item.rpIssueDate),
+            rpExDate: cleanDateStr(item.rpExDate),
+            commingDate: cleanDateStr(item.commingDate),
+            inRenewalReview: (item.qidStatus === 'inReview' || item.renewStatus === 'inReview')
+          }));
+          updateSyncStatus("Google Sheet Live", "bg-emerald-400");
+          renderApp();
+          return;
+        }
+      }
+      throw new Error("Invalid response");
+    } catch (e) {
+      console.error(e);
+      updateSyncStatus("Sync Error", "bg-red-400");
+    }
+  }
+
+  function cleanDateStr(val) {
+    if (!val) return '';
+    if (typeof val === 'string' && val.includes('T')) return val.split('T')[0];
+    const d = new Date(val);
+    if (!isNaN(d.getTime())) {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+    return String(val).split(' ')[0];
+  }
+
+  async function postToSheet(action, payload) {
+    updateSyncStatus("Saving to Cloud...", "bg-amber-500");
+    try {
+      await fetch(API_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: action, ...payload })
+      });
+      updateSyncStatus("Google Sheet Live", "bg-emerald-400");
+      setTimeout(fetchSheetData, 1200);
+    } catch (e) {
+      updateSyncStatus("Save Failed", "bg-red-400");
+      alert("Failed to save data to Google Sheet: " + e.message);
+    }
+  }
+
+  function getDaysRemaining(expireStr) {
+    if (!expireStr) return 999;
+    const exp = new Date(expireStr);
+    const now = new Date();
+    exp.setHours(0,0,0,0); now.setHours(0,0,0,0);
+    return Math.ceil((exp - now) / (1000 * 60 * 60 * 24));
+  }
+
+  function getCardBoxStyle(days) {
+    if (days < 0 && Math.abs(days) > 80) {
+      return "bg-red-950/90 border-2 border-red-600 shadow-red-900/50 shadow-lg"; 
+    } else if (days < 0) {
+      return "bg-red-950/40 border border-red-500/50"; 
+    } else if (days <= 30) {
+      return "bg-amber-950/60 border-2 border-yellow-400 shadow-yellow-500/20"; 
+    } else {
+      return "gold-glass border-slate-800"; 
+    }
+  }
+
+  function getStatusBadge(days) {
+    if (isNaN(days)) return `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300">⚪ UNKNOWN</span>`;
+    if (days < 0 && Math.abs(days) > 80) {
+      return `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-red-600 text-white">🚨 EXPIRED >80 DAYS (${Math.abs(days)}d)</span>`;
+    } else if (days < 0) {
+      return `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-red-900/80 text-red-300 border border-red-600/50">🔴 EXPIRED (${Math.abs(days)}d ago)</span>`;
+    } else if (days <= 30) {
+      return `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-yellow-500 text-dark-950 font-black">🟨 SAFE (${days}d left)</span>`;
+    } else {
+      return `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-700/50">🟢 SAFE (${days}d left)</span>`;
+    }
+  }
+
+  function renderApp() {
+    updateStats();
+    if (currentTab === 'directory') renderDirectory();
+    else if (currentTab === 'coming') renderComingList();
+    else if (currentTab === 'company') renderCompanyList();
+    else if (currentTab === 'renewal') renderRenewalList();
+  }
+
+  function updateStats() {
+    const total = employees.length;
+    const expired = employees.filter(e => getDaysRemaining(e.rpExDate) < 0).length;
+    const critical30 = employees.filter(e => {
+      const d = getDaysRemaining(e.rpExDate);
+      return d >= 0 && d <= 30;
+    }).length;
+    const highrisk = employees.filter(e => {
+      const d = getDaysRemaining(e.rpExDate);
+      return d < 0 && Math.abs(d) > 80;
+    }).length;
+    const comingCount = employees.filter(e => e.commingDate && e.commingDate.trim() !== '').length;
+    const renewalCount = employees.filter(e => e.inRenewalReview).length;
+    const dueTotal = employees.reduce((sum, e) => sum + (e.due || 0), 0);
+
+    document.getElementById('stat-total').textContent = total;
+    document.getElementById('stat-expired').textContent = expired;
+    document.getElementById('stat-critical30').textContent = critical30;
+    document.getElementById('stat-highrisk').textContent = highrisk;
+    document.getElementById('stat-due').textContent = dueTotal.toLocaleString() + ' QAR';
+
+    const comingBadge = document.getElementById('coming-badge');
+    if (comingCount > 0) { comingBadge.textContent = comingCount; comingBadge.classList.remove('hidden'); }
+    else comingBadge.classList.add('hidden');
+
+    const renewalBadge = document.getElementById('renewal-badge');
+    if (renewalCount > 0) { renewalBadge.textContent = renewalCount; renewalBadge.classList.remove('hidden'); }
+    else renewalBadge.classList.add('hidden');
+  }
+
+  function getFilteredEmployees() {
+    const q = document.getElementById('searchInput').value.toLowerCase().trim();
+    return employees.filter(e => {
+      const match = (e.qid||'').toLowerCase().includes(q) || (e.name||'').toLowerCase().includes(q) || (e.company||'').toLowerCase().includes(q);
+      if (!match) return false;
+
+      const d = getDaysRemaining(e.rpExDate);
+      if (activeFilter === 'expired' && d >= 0) return false;
+      if (activeFilter === 'critical30' && !(d >= 0 && d <= 30)) return false;
+      if (activeFilter === 'highrisk' && !(d < 0 && Math.abs(d) > 80)) return false;
+      if (activeFilter === 'due' && e.due <= 0) return false;
+      return true;
+    });
+  }
+
+  function renderCardHTML(e) {
+    const days = getDaysRemaining(e.rpExDate);
+    const boxStyle = getCardBoxStyle(days);
+
+    return `
+      <div class="${boxStyle} p-4 rounded-xl transition flex flex-col justify-between space-y-3">
+        <div>
+          <div class="flex items-start justify-between gap-2 mb-2">
+            <div>
+              <h3 onclick="openEmployeeModal('${e.qid}')" class="font-bold text-slate-100 hover:text-gold-300 cursor-pointer text-sm">${e.name}</h3>
+              <span class="mono text-xs text-gold-400 font-semibold">QID: ${e.qid}</span>
+            </div>
+            <div>${getStatusBadge(days)}</div>
+          </div>
+
+          <div class="text-xs space-y-1 text-slate-300">
+            <div class="flex justify-between"><span>Company:</span> <strong>${e.company || '-'}</strong></div>
+            <div class="flex justify-between"><span>RP Expire:</span> <strong>${e.rpExDate || '-'}</strong></div>
+            <div class="flex justify-between"><span>Coming Date:</span> <strong class="text-blue-400 font-bold">${e.commingDate || 'Not set'}</strong></div>
+          </div>
+
+          <div class="mt-3 p-2 rounded bg-dark-950 border border-slate-800 flex justify-between items-center text-xs">
+            <span class="text-slate-400">Balance Due:</span>
+            <span class="mono font-bold ${e.due > 0 ? 'text-red-400' : 'text-emerald-400'}">${e.due || 0} QAR</span>
+          </div>
+        </div>
+
+        <button onclick="openEmployeeModal('${e.qid}')" class="w-full py-1.5 bg-slate-800 hover:bg-slate-700 text-gold-400 text-xs font-bold rounded border border-gold-500/30">
+          👁️ Profile & Pay
+        </button>
+      </div>
+    `;
+  }
+
+  function renderDirectory() {
+    const list = getFilteredEmployees();
+    const grid = document.getElementById('employeeGrid');
+    document.getElementById('showing-count-text').textContent = `Showing ${list.length} of ${employees.length} staff`;
+    grid.innerHTML = list.length ? list.map(e => renderCardHTML(e)).join('') : `<div class="col-span-full gold-glass p-8 text-center text-slate-400">No records found.</div>`;
+  }
+
+  function renderComingList() {
+    const list = employees.filter(e => e.commingDate && e.commingDate.trim() !== '');
+    const grid = document.getElementById('comingListGrid');
+    grid.innerHTML = list.length ? list.map(e => renderCardHTML(e)).join('') : `<div class="col-span-full gold-glass p-8 text-center text-slate-400">No upcoming coming dates found.</div>`;
+  }
+
+  function renderCompanyList() {
+    const companies = ['ALL', ...new Set(employees.map(e => e.company || 'Unassigned'))];
+    document.getElementById('companyTabsContainer').innerHTML = companies.map(c => `
+      <button onclick="selectedCompanyFilter='${c}';renderCompanyList()" class="px-3 py-1.5 rounded-lg text-xs font-bold border ${selectedCompanyFilter === c ? 'bg-gold-500 text-dark-950 border-gold-400' : 'bg-slate-900 text-slate-300 border-slate-800'}">${c}</button>
+    `).join('');
+
+    const filtered = selectedCompanyFilter === 'ALL' ? employees : employees.filter(e => (e.company||'Unassigned') === selectedCompanyFilter);
+    document.getElementById('companyGrid').innerHTML = filtered.map(e => renderCardHTML(e)).join('');
+  }
+
+  function renderRenewalList() {
+    const queue = employees.filter(e => e.inRenewalReview);
+    const grid = document.getElementById('renewalQueueGrid');
+    grid.innerHTML = queue.length ? queue.map(e => `
+      <div class="gold-glass p-4 rounded-xl border-l-4 border-yellow-500 flex justify-between items-center">
+        <div>
+          <h4 class="font-bold text-white text-sm cursor-pointer hover:text-gold-300" onclick="openEmployeeModal('${e.qid}')">${e.name} (QID: ${e.qid})</h4>
+          <p class="text-xs text-slate-400">RP Expire: ${e.rpExDate} • Company: ${e.company}</p>
+        </div>
+        <button onclick="approveRenewalWithPassword('${e.qid}')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl">🔒 Approve Extension (+1 Yr)</button>
+      </div>
+    `).join('') : `<div class="gold-glass p-8 text-center text-slate-400">No pending renewals in review queue.</div>`;
+  }
+
+  function switchMainTab(tabName) {
+    currentTab = tabName;
+    ['directory', 'coming', 'company', 'renewal'].forEach(t => {
+      const sec = document.getElementById(`sec-${t}`);
+      const btn = document.getElementById(`tab-btn-${t}`);
+      if (sec) sec.classList.toggle('hidden', t !== tabName);
+      if (btn) {
+        if (t === tabName) {
+          btn.className = "px-3 py-2 rounded-lg font-bold text-xs transition bg-gradient-to-r from-gold-600 to-gold-500 text-dark-950 shadow whitespace-nowrap";
+        } else {
+          btn.className = (t === 'renewal') 
+            ? "px-3 py-2 rounded-lg font-bold text-xs text-yellow-400 hover:bg-yellow-500/10 transition whitespace-nowrap border border-yellow-500/30"
+            : "px-3 py-2 rounded-lg font-bold text-xs text-slate-400 hover:text-white transition whitespace-nowrap";
+        }
+      }
+    });
+    renderApp();
+  }
+
+  function promptRenewalPassword() {
+    if (prompt("Enter Password for Renewal Review:") === "SFBD") {
+      switchMainTab('renewal');
+    } else {
+      alert("Access Denied.");
+    }
+  }
+
+  function openEmployeeModal(qid) {
+    const emp = employees.find(e => e.qid === qid);
+    if (!emp) return;
+
+    activeEmployeeQid = qid;
+    document.getElementById('m-name').textContent = emp.name;
+    document.getElementById('m-qid').textContent = emp.qid;
+    document.getElementById('m-company').textContent = emp.company || '-';
+    document.getElementById('m-status-badge').innerHTML = getStatusBadge(getDaysRemaining(emp.rpExDate));
+
+    document.getElementById('m-input-name').value = emp.name || '';
+    document.getElementById('m-input-company').value = emp.company || '';
+    document.getElementById('m-input-gender').value = emp.gender || 'Male';
+    document.getElementById('m-input-nation').value = emp.nationality || '';
+    document.getElementById('m-input-dob').value = emp.dob || '';
+    document.getElementById('m-input-phone').value = emp.phone || '';
+    document.getElementById('m-input-issue').value = emp.rpIssueDate || '';
+    document.getElementById('m-input-expire').value = emp.rpExDate || '';
+    document.getElementById('m-input-coming').value = emp.commingDate || '';
+    document.getElementById('m-input-note').value = emp.note || '';
+
+    document.getElementById('m-input-total').value = emp.total || 0;
+    document.getElementById('m-ledger-total').textContent = (emp.total || 0) + ' QAR';
+    document.getElementById('m-ledger-pay').textContent = (emp.pay || 0) + ' QAR';
+    document.getElementById('m-ledger-due').textContent = (emp.due || 0) + ' QAR';
+
+    renderHistoryLogs(emp);
+    document.getElementById('employeeModal').classList.remove('hidden');
+  }
+
+  function renderHistoryLogs(emp) {
+    const histEl = document.getElementById('m-pay-history');
+    histEl.innerHTML = (emp.history && emp.history.length) ? emp.history.map(h => `
+      <div class="bg-slate-950 p-2 rounded border border-slate-800 text-[11px] flex justify-between">
+        <div><strong>${h.note}</strong> <br><span class="text-slate-500">${h.date}</span></div>
+        <span class="font-bold text-emerald-400">+${h.amount} QAR</span>
+      </div>
+    `).join('') : `<div class="text-slate-500 italic">No history in Sheet2.</div>`;
+  }
+
+  function saveProfileChanges() {
+    const emp = employees.find(e => e.qid === activeEmployeeQid);
+    if (!emp) return;
+
+    emp.name = document.getElementById('m-input-name').value.trim();
+    emp.company = document.getElementById('m-input-company').value.trim();
+    emp.gender = document.getElementById('m-input-gender').value;
+    emp.nationality = document.getElementById('m-input-nation').value.trim();
+    emp.dob = document.getElementById('m-input-dob').value;
+    emp.phone = document.getElementById('m-input-phone').value.trim();
+    emp.rpIssueDate = document.getElementById('m-input-issue').value;
+    emp.rpExDate = document.getElementById('m-input-expire').value;
+    emp.commingDate = document.getElementById('m-input-coming').value;
+    emp.note = document.getElementById('m-input-note').value.trim();
+
+    postToSheet('addOrUpdate', { employee: emp });
+    alert("Saved successfully to Google Sheet!");
+  }
+
+  function flagForRenewalWithPassword() {
+    if (prompt("Enter Password to Flag for Renewal:") === "SFBD") {
+      const emp = employees.find(e => e.qid === activeEmployeeQid);
+      emp.qidStatus = 'inReview';
+      emp.renewStatus = 'inReview';
+      emp.inRenewalReview = true;
+      postToSheet('addOrUpdate', { employee: emp });
+      alert("Flagged for Renewal!");
+    } else alert("Wrong Password!");
+  }
+
+  function approveRenewalWithPassword(qid) {
+    if (prompt("Enter Password to Approve Extension:") === "SFBD") {
+      const emp = employees.find(e => e.qid === qid);
+      let curr = emp.rpExDate ? new Date(emp.rpExDate) : new Date();
+      if (isNaN(curr.getTime())) curr = new Date();
+      curr.setFullYear(curr.getFullYear() + 1);
+      
+      const year = curr.getFullYear();
+      const month = String(curr.getMonth() + 1).padStart(2, '0');
+      const day = String(curr.getDate()).padStart(2, '0');
+      
+      emp.rpExDate = `${year}-${month}-${day}`;
+      emp.qidStatus = '';
+      emp.renewStatus = '';
+      emp.inRenewalReview = false;
+      postToSheet('addOrUpdate', { employee: emp });
+      alert(`Approved! Extended to ${emp.rpExDate}`);
+    } else alert("Wrong Password!");
+  }
+
+  function addPaymentTransaction() {
+    const emp = employees.find(e => e.qid === activeEmployeeQid);
+    const amt = parseFloat(document.getElementById('pay-amount').value);
+    const note = document.getElementById('pay-note').value.trim() || 'Deposit';
+    if (!amt || amt <= 0) return alert("Enter valid amount");
+
+    emp.pay += amt;
+    emp.due = Math.max(0, emp.total - emp.pay);
+    const tx = { date: new Date().toISOString().split('T')[0], amount: amt, note: note };
+
+    postToSheet('addOrUpdate', { employee: emp, transactionLog: tx });
+    alert("Transection saved to Sheet!");
+  }
+
+  function clearAllPaymentWithPassword() {
+    if (prompt("Enter Password to Reset Ledger:") === "SFBD") {
+      const emp = employees.find(e => e.qid === activeEmployeeQid);
+      emp.total = 0; emp.pay = 0; emp.due = 0;
+      const tx = { date: new Date().toISOString().split('T')[0], amount: 0, note: 'Reset (Password: SFBD)' };
+      postToSheet('addOrUpdate', { employee: emp, transactionLog: tx });
+      alert("Ledger Reset!");
+    } else alert("Access Denied.");
+  }
+
+  function updateTotalFee() {
+    const emp = employees.find(e => e.qid === activeEmployeeQid);
+    emp.total = parseFloat(document.getElementById('m-input-total').value) || 0;
+    emp.due = Math.max(0, emp.total - emp.pay);
+    postToSheet('addOrUpdate', { employee: emp });
+  }
+
+  function handleCreateEmployee(e) {
+    e.preventDefault();
+    const newEmp = {
+      qid: document.getElementById('add-qid').value.trim(),
+      name: document.getElementById('add-name').value.trim(),
+      company: document.getElementById('add-company').value.trim(),
+      gender: document.getElementById('add-gender').value,
+      nationality: document.getElementById('add-nation').value.trim(),
+      dob: document.getElementById('add-dob').value,
+      phone: document.getElementById('add-phone').value.trim(),
+      rpIssueDate: document.getElementById('add-issue').value,
+      rpExDate: document.getElementById('add-expire').value,
+      commingDate: document.getElementById('add-coming').value,
+      note: document.getElementById('add-note').value.trim(),
+      total: parseFloat(document.getElementById('add-total').value) || 0, 
+      pay: 0, 
+      due: parseFloat(document.getElementById('add-total').value) || 0
+    };
+    postToSheet('addOrUpdate', { employee: newEmp });
+    closeModal('addEmployeeModal');
+  }
+
+  function updateSyncStatus(text, dotColorClass) {
+    document.getElementById('syncStatus').innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${dotColorClass} animate-pulse"></span> ${text}`;
+  }
+  function setFilter(f) { activeFilter = f; renderApp(); }
+  function openAddEmployeeModal() { document.getElementById('addEmployeeModal').classList.remove('hidden'); }
+  function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+</script>
+</body>
+</html>

@@ -119,6 +119,10 @@
           💰 Due List
           <span id="due-badge" class="px-1.5 py-0.5 rounded-full text-[10px] bg-red-600 text-white font-bold hidden">0</span>
         </button>
+        <button id="tab-btn-payhistory" onclick="switchMainTab('payhistory')" class="px-3 py-2 rounded-lg font-bold text-xs text-slate-400 hover:text-white transition whitespace-nowrap flex items-center gap-1">
+          📜 Payment History
+          <span id="payhistory-badge" class="px-1.5 py-0.5 rounded-full text-[10px] bg-emerald-600 text-white font-bold hidden">0</span>
+        </button>
         <button id="tab-btn-renewal" onclick="promptRenewalPassword()" class="px-3 py-2 rounded-lg font-bold text-xs text-yellow-400 hover:bg-yellow-500/10 transition whitespace-nowrap border border-yellow-500/30">
           🔒 QID Renewal Review
           <span id="renewal-badge" class="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-red-600 text-white font-bold hidden">0</span>
@@ -191,6 +195,17 @@
         </div>
       </div>
       <div id="dueListGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </section>
+
+    <!-- PAYMENT HISTORY TAB -->
+    <section id="sec-payhistory" class="hidden space-y-4">
+      <div class="gold-glass p-4 rounded-xl border border-emerald-500/30 flex justify-between items-center">
+        <div>
+          <h2 class="text-base font-bold text-emerald-400">📜 All Payment Transaction History</h2>
+          <p class="text-xs text-slate-400">Complete log of all payment deposits recorded across all staff members.</p>
+        </div>
+      </div>
+      <div id="payHistoryGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
     </section>
 
     <!-- RENEWAL REVIEW TAB -->
@@ -474,6 +489,7 @@
     else if (currentTab === 'coming') renderComingList();
     else if (currentTab === 'company') renderCompanyList();
     else if (currentTab === 'due') renderDueList();
+    else if (currentTab === 'payhistory') renderPaymentHistoryList();
     else if (currentTab === 'renewal') renderRenewalList();
   }
 
@@ -493,6 +509,9 @@
     const renewalCount = employees.filter(e => e.inRenewalReview).length;
     const dueTotal = employees.reduce((sum, e) => sum + (e.due || 0), 0);
 
+    let totalTxCount = 0;
+    employees.forEach(e => { if (e.history) totalTxCount += e.history.length; });
+
     document.getElementById('stat-total').textContent = total;
     document.getElementById('stat-expired').textContent = expired;
     document.getElementById('stat-critical30').textContent = critical30;
@@ -506,6 +525,10 @@
     const dueBadge = document.getElementById('due-badge');
     if (dueCount > 0) { dueBadge.textContent = dueCount; dueBadge.classList.remove('hidden'); }
     else dueBadge.classList.add('hidden');
+
+    const payBadge = document.getElementById('payhistory-badge');
+    if (totalTxCount > 0) { payBadge.textContent = totalTxCount; payBadge.classList.remove('hidden'); }
+    else payBadge.classList.add('hidden');
 
     const renewalBadge = document.getElementById('renewal-badge');
     if (renewalCount > 0) { renewalBadge.textContent = renewalCount; renewalBadge.classList.remove('hidden'); }
@@ -597,6 +620,38 @@
     grid.innerHTML = list.length ? list.map(e => renderCardHTML(e)).join('') : `<div class="col-span-full gold-glass p-8 text-center text-slate-400">No due balances found. All accounts are clear!</div>`;
   }
 
+  function renderPaymentHistoryList() {
+    let allTransactions = [];
+    employees.forEach(e => {
+      if (e.history && e.history.length > 0) {
+        e.history.forEach(h => {
+          allTransactions.push({ ...h, empName: e.name, empQid: e.qid, company: e.company });
+        });
+      }
+    });
+
+    // Sort by date newest first
+    allTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    const grid = document.getElementById('payHistoryGrid');
+    grid.innerHTML = allTransactions.length ? allTransactions.map(tx => `
+      <div class="gold-glass p-4 rounded-xl border-l-4 border-emerald-500 flex flex-col justify-between space-y-2">
+        <div class="flex justify-between items-start">
+          <div>
+            <h4 class="font-bold text-white text-sm cursor-pointer hover:text-gold-300" onclick="openEmployeeModal('${tx.empQid}')">${tx.empName}</h4>
+            <span class="mono text-[11px] text-gold-400">QID: ${tx.empQid}</span>
+          </div>
+          <span class="px-2 py-0.5 rounded text-xs font-bold bg-emerald-950 text-emerald-400 border border-emerald-700/50 mono">+${tx.amount} QAR</span>
+        </div>
+        <div class="text-xs text-slate-300 space-y-0.5">
+          <div><span>Note:</span> <strong class="text-slate-100">${tx.note || 'Deposit'}</strong></div>
+          <div><span>Company:</span> <span class="text-slate-400">${tx.company || '-'}</span></div>
+          <div class="text-[11px] text-slate-500 pt-1">Date: ${tx.date}</div>
+        </div>
+      </div>
+    `).join('') : `<div class="col-span-full gold-glass p-8 text-center text-slate-400">No payment transaction history found.</div>`;
+  }
+
   function downloadCompanyPDF() {
     const filtered = selectedCompanyFilter === 'ALL' ? employees : employees.filter(e => (e.company||'Unassigned') === selectedCompanyFilter);
     if (!filtered.length) return alert("No data to download!");
@@ -674,7 +729,7 @@
 
   function switchMainTab(tabName) {
     currentTab = tabName;
-    ['directory', 'coming', 'company', 'due', 'renewal'].forEach(t => {
+    ['directory', 'coming', 'company', 'due', 'payhistory', 'renewal'].forEach(t => {
       const sec = document.getElementById(`sec-${t}`);
       const btn = document.getElementById(`tab-btn-${t}`);
       if (sec) sec.classList.toggle('hidden', t !== tabName);
@@ -827,7 +882,6 @@
     emp.total = parseFloat(document.getElementById('m-input-total').value) || 0;
     emp.due = Math.max(0, emp.total - emp.pay);
     
-    // Auto clear total fee input field after update
     document.getElementById('m-input-total').value = '';
 
     postToSheet('addOrUpdate', { employee: emp });

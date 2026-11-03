@@ -251,7 +251,7 @@
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div><label class="text-slate-400 block mb-1">DOB</label><input type="date" id="m-input-dob" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
-            <div><label class="text-slate-400 block mb-1">Phone</label><input type="text" id="m-input-phone" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
+            <div><label class="text-slate-400 block mb-1">Phone (Multiple numbers separated by space/comma)</label><input type="text" id="m-input-phone" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div><label class="text-slate-400 block mb-1">RP Issue Date</label><input type="date" id="m-input-issue" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
@@ -316,7 +316,7 @@
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div><label class="text-slate-400 block mb-1">DOB</label><input type="date" id="add-dob" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
-          <div><label class="text-slate-400 block mb-1">Phone</label><input type="text" id="add-phone" placeholder="Phone" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
+          <div><label class="text-slate-400 block mb-1">Phone (Multiple allowed)</label><input type="text" id="add-phone" placeholder="Phone" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div><label class="text-slate-400 block mb-1">RP Issue Date</label><input type="date" id="add-issue" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
@@ -580,7 +580,20 @@
   function renderCardHTML(e) {
     const days = getDaysRemaining(e.rpExDate);
     const boxStyle = getCardBoxStyle(days);
-    const phoneNum = e.phone ? e.phone.trim() : '';
+    
+    // Process phone numbers to support multiple numbers nicely with separate Call buttons
+    let rawPhone = e.phone ? String(e.phone).trim() : '';
+    let phoneNumbers = rawPhone ? rawPhone.split(/[\s,]+/).filter(n => n.length > 0) : [];
+
+    let phoneHtml = '<span class="text-slate-500 italic">No phone</span>';
+    if (phoneNumbers.length > 0) {
+      phoneHtml = phoneNumbers.map(num => `
+        <div class="flex items-center justify-between gap-2 bg-slate-950/80 px-2 py-1 rounded border border-slate-800">
+          <span class="mono text-slate-200 font-bold">${num}</span>
+          <a href="tel:${num}" class="px-2 py-0.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] shadow flex items-center gap-1 transition shrink-0" title="Call ${num}">📞 Call</a>
+        </div>
+      `).join('');
+    }
 
     return `
       <div class="${boxStyle} p-4 rounded-xl transition flex flex-col justify-between space-y-3">
@@ -593,15 +606,12 @@
             <div>${getStatusBadge(days)}</div>
           </div>
 
-          <div class="text-xs space-y-1.5 text-slate-300">
-            <div class="flex justify-between items-center">
-              <span>Phone:</span>
-              <div class="flex items-center gap-1.5">
-                <strong class="mono text-slate-200">${phoneNum || 'No phone'}</strong>
-                ${phoneNum ? `<a href="tel:${phoneNum}" class="px-2 py-0.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] shadow flex items-center gap-1 transition" title="Call Employee">📞 Call</a>` : ''}
-              </div>
+          <div class="text-xs space-y-2 text-slate-300">
+            <div>
+              <div class="text-slate-400 mb-1">Phone:</div>
+              <div class="space-y-1">${phoneHtml}</div>
             </div>
-            <div class="flex justify-between"><span>Company:</span> <strong class="text-right truncate max-w-[170px]" title="${e.company || '-'}">${e.company || '-'}</strong></div>
+            <div class="flex justify-between pt-1"><span>Company:</span> <strong class="text-right truncate max-w-[170px]" title="${e.company || '-'}">${e.company || '-'}</strong></div>
             <div class="flex justify-between items-center bg-slate-950/70 p-1.5 rounded border border-yellow-500/40">
               <span class="text-yellow-400 font-semibold">RP Expire:</span> 
               <strong class="text-yellow-300 font-bold mono text-sm bg-yellow-500/10 px-2 py-0.5 rounded border border-yellow-500/30">${e.rpExDate || '-'}</strong>

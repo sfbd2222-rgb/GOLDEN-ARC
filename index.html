@@ -360,7 +360,6 @@
           updateCompanyListFromData();
           updateSyncStatus("Google Sheet Live", "bg-emerald-400");
           renderApp();
-          // If modal is open, update modal UI instantly with fresh data
           if (activeEmployeeQid) {
             openEmployeeModal(activeEmployeeQid, true);
           }
@@ -447,7 +446,6 @@
         body: JSON.stringify({ action: action, ...payload })
       });
       updateSyncStatus("Google Sheet Live", "bg-emerald-400");
-      // Instant local state update for zero-delay UI refresh
       applyInstantLocalUpdate(action, payload);
       setTimeout(fetchSheetData, 800);
     } catch (e) {
@@ -552,7 +550,7 @@
     else comingBadge.classList.add('hidden');
 
     const dueBadge = document.getElementById('due-badge');
-    if (dueCount > 0) { dueBadge.textContent = dueCount; dueBadge.classList.remove('hidden'); }
+    if (dueCount > 0) { dueBadge.textContent = dueCount; dueBadge.classList.add('hidden'); }
     else dueBadge.classList.add('hidden');
 
     const payBadge = document.getElementById('payhistory-badge');
@@ -582,6 +580,7 @@
   function renderCardHTML(e) {
     const days = getDaysRemaining(e.rpExDate);
     const boxStyle = getCardBoxStyle(days);
+    const phoneNum = e.phone ? e.phone.trim() : '';
 
     return `
       <div class="${boxStyle} p-4 rounded-xl transition flex flex-col justify-between space-y-3">
@@ -594,9 +593,19 @@
             <div>${getStatusBadge(days)}</div>
           </div>
 
-          <div class="text-xs space-y-1 text-slate-300">
-            <div class="flex justify-between"><span>Company:</span> <strong>${e.company || '-'}</strong></div>
-            <div class="flex justify-between"><span>RP Expire:</span> <strong>${e.rpExDate || '-'}</strong></div>
+          <div class="text-xs space-y-1.5 text-slate-300">
+            <div class="flex justify-between items-center">
+              <span>Phone:</span>
+              <div class="flex items-center gap-1.5">
+                <strong class="mono text-slate-200">${phoneNum || 'No phone'}</strong>
+                ${phoneNum ? `<a href="tel:${phoneNum}" class="px-2 py-0.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] shadow flex items-center gap-1 transition" title="Call Employee">📞 Call</a>` : ''}
+              </div>
+            </div>
+            <div class="flex justify-between"><span>Company:</span> <strong class="text-right truncate max-w-[170px]" title="${e.company || '-'}">${e.company || '-'}</strong></div>
+            <div class="flex justify-between items-center bg-slate-950/70 p-1.5 rounded border border-yellow-500/40">
+              <span class="text-yellow-400 font-semibold">RP Expire:</span> 
+              <strong class="text-yellow-300 font-bold mono text-sm bg-yellow-500/10 px-2 py-0.5 rounded border border-yellow-500/30">${e.rpExDate || '-'}</strong>
+            </div>
             <div class="flex justify-between"><span>Coming Date:</span> <strong class="text-blue-400 font-bold">${e.commingDate || 'Not set'}</strong></div>
           </div>
 

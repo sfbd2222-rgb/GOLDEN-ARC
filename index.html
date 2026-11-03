@@ -605,12 +605,12 @@
       await fetch(API_URL, {
         method: 'POST',
         mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: action, ...payload })
       });
       updateSyncStatus("Connected", "bg-emerald-400");
       applyInstantLocalUpdate(action, payload);
-      setTimeout(fetchSheetData, 800);
+      setTimeout(fetchSheetData, 1000);
     } catch (e) {
       updateSyncStatus("Save Failed", "bg-red-400");
       alert("Failed to save data: " + e.message);
@@ -623,7 +623,7 @@
     const folderId = localStorage.getItem('ga_folder_id');
 
     if (!fileInput.files.length) return alert("Please select a file first!");
-    if (!folderId) return alert("Drive Folder ID not found for this license!");
+    if (!folderId) return alert("Drive Folder ID not found in license storage!");
 
     const file = fileInput.files[0];
     const reader = new FileReader();
@@ -645,14 +645,14 @@
         await fetch(API_URL, {
           method: 'POST',
           mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify(payload)
         });
 
         updateSyncStatus("Connected", "bg-emerald-400");
-        alert("Document uploaded successfully to Drive folder!");
+        alert("Document uploaded successfully to Drive folder & Sheet!");
         fileInput.value = '';
-        setTimeout(fetchSheetData, 1000);
+        setTimeout(fetchSheetData, 2000);
       } catch (err) {
         alert("Upload failed: " + err.message);
         updateSyncStatus("Error", "bg-red-400");

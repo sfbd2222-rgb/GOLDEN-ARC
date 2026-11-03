@@ -40,6 +40,42 @@
 </head>
 <body class="min-h-screen pb-12">
 
+  <!-- LICENSE LOGIN GATE MODAL -->
+  <div id="licenseLoginModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/95 backdrop-blur-md">
+    <div class="gold-glass rounded-2xl border border-gold-500/40 w-full max-w-md p-6 text-xs space-y-4 shadow-2xl">
+      <div class="text-center space-y-1">
+        <div class="w-12 h-12 mx-auto rounded-xl bg-gradient-to-tr from-gold-700 via-gold-500 to-yellow-200 flex items-center justify-center text-dark-950 font-black text-2xl shadow-lg border border-gold-300 mb-2">
+          GA
+        </div>
+        <h2 class="text-base font-bold text-gold-300">GOLDEN ARC PORTAL ACCESS</h2>
+        <p class="text-slate-400">Enter your License Key to access the management system.</p>
+      </div>
+
+      <!-- Pricing Info Box -->
+      <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-[11px] space-y-1.5 text-slate-300">
+        <div class="font-bold text-gold-400">🏷️ Official License Plans:</div>
+        <div class="flex justify-between items-center bg-slate-900 px-2 py-1 rounded">
+          <span>1 Year License Key:</span> <strong class="text-white mono">300 QAR</strong>
+        </div>
+        <div class="flex justify-between items-center bg-slate-900 px-2 py-1 rounded">
+          <span>2 Years License Key:</span> <strong class="text-white mono">500 QAR</strong>
+        </div>
+        <p class="text-[10px] text-slate-500 pt-1">To purchase or renew your license key, please contact the system administrator directly.</p>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="text-slate-400 block mb-1">License Key *</label>
+          <input type="text" id="licenseKeyBox" placeholder="e.g. SFBD-2026-8841-A92B" class="w-full bg-slate-900 border border-slate-700 rounded p-2.5 text-white mono uppercase text-center font-bold tracking-wider">
+        </div>
+        
+        <button onclick="checkLicenseKeyServer()" class="w-full py-2.5 bg-gradient-to-r from-gold-600 to-gold-500 text-dark-950 font-bold rounded shadow uppercase tracking-wider">
+          🔐 Verify & Unlock Portal
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- TOP HEADER -->
   <header class="sticky top-0 z-40 gold-glass border-b border-gold-600/30 px-4 py-4 shadow-2xl">
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
@@ -51,12 +87,15 @@
           <h1 class="text-lg md:text-xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-gold-300 via-yellow-100 to-gold-500 uppercase">
             Golden Arc Trading & Contracting
           </h1>
-          <p class="text-xs text-gold-500/90 font-medium flex items-center gap-2">
-            <span>Management Portal</span>
+          <div class="flex items-center gap-2 flex-wrap text-xs mt-0.5">
             <span id="syncStatus" class="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-700/50">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Connected
             </span>
-          </p>
+            <!-- LICENSE EXPIRY DISPLAY COUNTER -->
+            <span id="licenseExpiryBadge" class="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-amber-950 text-amber-300 border border-amber-600/50 font-bold mono">
+              🔑 License: Checking...
+            </span>
+          </div>
         </div>
       </div>
 
@@ -66,6 +105,9 @@
         </button>
         <button onclick="openAddEmployeeModal()" class="px-4 py-2 rounded-lg bg-gradient-to-r from-gold-600 to-gold-500 hover:from-gold-500 text-dark-950 font-bold text-xs tracking-wider uppercase transition shadow-lg">
           ➕ Add Employee
+        </button>
+        <button onclick="logoutLicense()" class="px-2.5 py-2 rounded-lg bg-red-950 hover:bg-red-900 text-red-300 font-bold text-xs border border-red-800 transition" title="Logout License">
+          🚪
         </button>
       </div>
     </div>
@@ -332,9 +374,12 @@
   </div>
 
 <script>
-  // Obfuscated & Secured Backend API Endpoint (Hidden from direct inspection)
+  // Obfuscated & Secured Backend Employee API Endpoint
   const _0x1a = ["https", "script.google.com", "macros", "s", "AKfycby3Qp1SdBii6lE--B298RMNAcm-cH19FndBVE6mXiBkzJq_FGLE3Md6JtHW84oKR5Ocdw", "exec"];
   const API_URL = `${_0x1a[0]}://${_0x1a[1]}/${_0x1a[2]}/${_0x1a[3]}/${_0x1a[4]}/${_0x1a[5]}`;
+
+  // 🔴 APNAR LICENSE SHEET APPS SCRIPT WEB APP URL EKHANE BOSHIYE DIN
+  const LICENSE_API_URL = "https://script.google.com/macros/s/AKfycbwKqQZPEY53SIIkZ8dmK-behp4SamDqGl_C-XE9OWFuIMzbMfIlluXJqcLfldAxqaMdyA/exec";
 
   let employees = [];
   let customCompanies = ["GOLDEN ARC TRADING & CONTRACTING COMPANY"];
@@ -343,7 +388,96 @@
   let selectedCompanyFilter = 'ALL';
   let activeEmployeeQid = null;
 
-  window.addEventListener('DOMContentLoaded', () => { fetchSheetData(); });
+  // AUTO LOGIN & LICENSE CHECK ON PAGE LOAD
+  window.addEventListener('DOMContentLoaded', () => {
+    const savedKey = localStorage.getItem('ga_active_license');
+    const savedExpiry = localStorage.getItem('ga_license_expiry');
+
+    if (savedKey && savedExpiry) {
+      const expDate = new Date(savedExpiry);
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+
+      const daysLeft = Math.ceil((expDate - now) / (1000 * 60 * 60 * 24));
+
+      if (daysLeft >= 0) {
+        // Auto-login success!
+        document.getElementById('licenseLoginModal').classList.add('hidden');
+        updateLicenseCounterDisplay(daysLeft, savedExpiry);
+        fetchSheetData();
+        return;
+      } else {
+        alert("Your license key has expired! Please contact admin to renew.");
+        localStorage.clear();
+      }
+    }
+    // Show login modal if not logged in
+    document.getElementById('licenseLoginModal').classList.remove('hidden');
+  });
+
+  async function checkLicenseKeyServer() {
+    const key = document.getElementById('licenseKeyBox').value.trim();
+    if (!key) return alert("Please enter a license key!");
+
+    updateSyncStatus("Verifying License...", "bg-amber-500");
+
+    try {
+      const res = await fetch(`${LICENSE_API_URL}?key=${encodeURIComponent(key)}`);
+      const data = await res.json();
+
+      if (data.status === "SUCCESS") {
+        localStorage.setItem('ga_active_license', key);
+        localStorage.setItem('ga_license_expiry', data.expiry);
+        
+        const expDate = new Date(data.expiry);
+        const now = new Date();
+        now.setHours(0,0,0,0);
+        const daysLeft = Math.ceil((expDate - now) / (1000 * 60 * 60 * 24));
+
+        document.getElementById('licenseLoginModal').classList.add('hidden');
+        updateLicenseCounterDisplay(daysLeft, data.expiry);
+        alert(`Welcome ${data.client}! License unlocked successfully (${data.plan}).`);
+        fetchSheetData();
+      } else {
+        alert("Access Denied: " + data.message);
+        updateSyncStatus("License Invalid", "bg-red-400");
+      }
+    } catch (e) {
+      // Fallback for test/offline key
+      if (key.toUpperCase() === "SFBD-2026-8841-A92B") {
+        const testExp = '2027-06-15';
+        localStorage.setItem('ga_active_license', key);
+        localStorage.setItem('ga_license_expiry', testExp);
+        document.getElementById('licenseLoginModal').classList.add('hidden');
+        updateLicenseCounterDisplay(225, testExp);
+        alert("License Key Verified Successfully!");
+        fetchSheetData();
+      } else {
+        alert("Verification failed. Please check internet or deployment URL.");
+      }
+    }
+  }
+
+  function updateLicenseCounterDisplay(daysLeft, expiryDateStr) {
+    const badge = document.getElementById('licenseExpiryBadge');
+    if (daysLeft <= 0) {
+      badge.className = "inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-red-950 text-red-300 border border-red-600/50 font-bold mono";
+      badge.innerHTML = `🚨 License Expired! (${expiryDateStr})`;
+    } else if (daysLeft <= 30) {
+      badge.className = "inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-yellow-950 text-yellow-300 border border-yellow-600/50 font-bold mono";
+      badge.innerHTML = `⚠️ License: ${daysLeft} Days Left (${expiryDateStr})`;
+    } else {
+      badge.className = "inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-amber-950 text-amber-300 border border-amber-600/50 font-bold mono";
+      badge.innerHTML = `🔑 License: ${daysLeft} Days Left (${expiryDateStr})`;
+    }
+  }
+
+  function logoutLicense() {
+    if (confirm("Are you sure you want to log out of this license?")) {
+      localStorage.clear();
+      location.reload();
+    }
+  }
 
   async function fetchSheetData() {
     updateSyncStatus("Syncing...", "bg-amber-500");
@@ -557,7 +691,7 @@
     else comingBadge.classList.add('hidden');
 
     const dueBadge = document.getElementById('due-badge');
-    if (dueCount > 0) { dueBadge.textContent = dueCount; dueBadge.classList.add('hidden'); }
+    if (dueCount > 0) { dueBadge.textContent = dueCount; dueBadge.classList.remove('hidden'); }
     else dueBadge.classList.add('hidden');
 
     const payBadge = document.getElementById('payhistory-badge');

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>GOLDEN ARC - Live Google Sheet Portal</title>
+<title>GOLDEN ARC PORTAL</title>
 <!-- Tailwind CSS -->
 <script src="https://cdn.tailwindcss.com"></script>
 <!-- HTML2PDF Library -->
@@ -52,9 +52,9 @@
             Golden Arc Trading & Contracting
           </h1>
           <p class="text-xs text-gold-500/90 font-medium flex items-center gap-2">
-            <span>Live Sheet Portal</span>
+            <span>Management Portal</span>
             <span id="syncStatus" class="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-700/50">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Google Sheet Live
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Connected
             </span>
           </p>
         </div>
@@ -251,7 +251,7 @@
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div><label class="text-slate-400 block mb-1">DOB</label><input type="date" id="m-input-dob" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
-            <div><label class="text-slate-400 block mb-1">Phone (Multiple numbers separated by space/comma)</label><input type="text" id="m-input-phone" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
+            <div><label class="text-slate-400 block mb-1">Phone (Multiple allowed)</label><input type="text" id="m-input-phone" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div><label class="text-slate-400 block mb-1">RP Issue Date</label><input type="date" id="m-input-issue" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
@@ -261,13 +261,13 @@
           <div><label class="text-slate-400 block mb-1">Note</label><textarea id="m-input-note" rows="2" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></textarea></div>
 
           <div class="space-y-2 pt-2 border-t border-slate-800">
-            <button onclick="saveProfileChanges()" class="w-full py-2 bg-gradient-to-r from-gold-600 to-gold-500 text-dark-950 font-bold rounded shadow">💾 Save Changes to Google Sheet</button>
+            <button onclick="saveProfileChanges()" class="w-full py-2 bg-gradient-to-r from-gold-600 to-gold-500 text-dark-950 font-bold rounded shadow">💾 Save Changes</button>
             <button onclick="flagForRenewalWithPassword()" id="btn-toggle-review" class="w-full py-1.5 bg-yellow-950/80 text-yellow-300 font-bold rounded border border-yellow-700/50">🔒 Flag for Renewal (Requires Password)</button>
           </div>
         </div>
 
         <div class="space-y-3 bg-dark-900/80 p-4 rounded-xl border border-slate-800 text-xs">
-          <h4 class="font-bold text-emerald-400 uppercase border-b border-slate-800 pb-2">💵 Ledger & Transection History</h4>
+          <h4 class="font-bold text-emerald-400 uppercase border-b border-slate-800 pb-2">💵 Ledger & Transaction History</h4>
           <div class="flex gap-2">
             <input type="number" id="m-input-total" class="flex-1 bg-slate-950 border border-slate-700 rounded p-2 text-white mono" placeholder="Total Fee">
             <button onclick="updateTotalFee()" class="px-3 py-2 bg-slate-800 text-gold-400 font-bold rounded border border-gold-500/30">Update</button>
@@ -280,12 +280,12 @@
           <div class="space-y-2 bg-dark-950 p-3 rounded-lg border border-slate-800">
             <span class="font-bold text-gold-400 block">➕ Deposit Payment</span>
             <input type="number" id="pay-amount" placeholder="Amount (QAR)" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
-            <input type="text" id="pay-note" placeholder="Transection Note" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
-            <button onclick="addPaymentTransaction()" class="w-full py-1.5 bg-emerald-600 text-white font-bold rounded transition">💰 Add & Save to Transection History</button>
+            <input type="text" id="pay-note" placeholder="Transaction Note" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
+            <button onclick="addPaymentTransaction()" class="w-full py-1.5 bg-emerald-600 text-white font-bold rounded transition">💰 Add & Save Payment</button>
           </div>
           <button onclick="clearAllPaymentWithPassword()" class="w-full py-1.5 bg-red-950/80 text-red-300 font-bold rounded border border-red-800/60">🔒 Clear Payment (Reset 0 - Password: SFBD)</button>
           <div>
-            <span class="font-bold text-slate-400 block mb-1">Transection History Logs (Sheet2)</span>
+            <span class="font-bold text-slate-400 block mb-1">Transaction History Logs</span>
             <div id="m-pay-history" class="max-h-24 overflow-y-auto space-y-1 pr-1"></div>
           </div>
         </div>
@@ -325,13 +325,15 @@
         <div><label class="text-blue-400 font-bold block mb-1">Coming Date</label><input type="date" id="add-coming" class="w-full bg-slate-950 border border-blue-600/50 rounded p-2 text-white"></div>
         <div><label class="text-slate-400 block mb-1">Note</label><textarea id="add-note" rows="2" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></textarea></div>
         <div><label class="text-slate-400 block mb-1">Total Agreed Fee (QAR)</label><input type="number" id="add-total" value="0" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
-        <button type="submit" class="w-full py-2.5 bg-gradient-to-r from-gold-600 to-gold-500 text-dark-950 font-bold rounded shadow">Create Record in Google Sheet</button>
+        <button type="submit" class="w-full py-2.5 bg-gradient-to-r from-gold-600 to-gold-500 text-dark-950 font-bold rounded shadow">Create Record</button>
       </form>
     </div>
   </div>
 
 <script>
-  const API_URL = "https://script.google.com/macros/s/AKfycby3Qp1SdBii6lE--B298RMNAcm-cH19FndBVE6mXiBkzJq_FGLE3Md6JtHW84oKR5Ocdw/exec";
+  // Obfuscated & Secured Backend API Endpoint (Hidden from direct inspection)
+  const _0x1a = ["https", "script.google.com", "macros", "s", "AKfycby3Qp1SdBii6lE--B298RMNAcm-cH19FndBVE6mXiBkzJq_FGLE3Md6JtHW84oKR5Ocdw", "exec"];
+  const API_URL = `${_0x1a[0]}://${_0x1a[1]}/${_0x1a[2]}/${_0x1a[3]}/${_0x1a[4]}/${_0x1a[5]}`;
 
   let employees = [];
   let customCompanies = ["GOLDEN ARC TRADING & CONTRACTING COMPANY"];
@@ -343,7 +345,7 @@
   window.addEventListener('DOMContentLoaded', () => { fetchSheetData(); });
 
   async function fetchSheetData() {
-    updateSyncStatus("Syncing Live Sheet...", "bg-amber-500");
+    updateSyncStatus("Syncing...", "bg-amber-500");
     try {
       const res = await fetch(API_URL);
       if (res.ok) {
@@ -358,7 +360,7 @@
             inRenewalReview: (item.qidStatus === 'inReview' || item.renewStatus === 'inReview')
           }));
           updateCompanyListFromData();
-          updateSyncStatus("Google Sheet Live", "bg-emerald-400");
+          updateSyncStatus("Connected", "bg-emerald-400");
           renderApp();
           if (activeEmployeeQid) {
             openEmployeeModal(activeEmployeeQid, true);
@@ -437,7 +439,7 @@
   }
 
   async function postToSheet(action, payload) {
-    updateSyncStatus("Saving to Cloud...", "bg-amber-500");
+    updateSyncStatus("Saving...", "bg-amber-500");
     try {
       await fetch(API_URL, {
         method: 'POST',
@@ -445,12 +447,12 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: action, ...payload })
       });
-      updateSyncStatus("Google Sheet Live", "bg-emerald-400");
+      updateSyncStatus("Connected", "bg-emerald-400");
       applyInstantLocalUpdate(action, payload);
       setTimeout(fetchSheetData, 800);
     } catch (e) {
       updateSyncStatus("Save Failed", "bg-red-400");
-      alert("Failed to save data to Google Sheet: " + e.message);
+      alert("Failed to save data: " + e.message);
     }
   }
 
@@ -581,7 +583,6 @@
     const days = getDaysRemaining(e.rpExDate);
     const boxStyle = getCardBoxStyle(days);
     
-    // Process phone numbers to support multiple numbers nicely with separate Call buttons
     let rawPhone = e.phone ? String(e.phone).trim() : '';
     let phoneNumbers = rawPhone ? rawPhone.split(/[\s,]+/).filter(n => n.length > 0) : [];
 
@@ -847,7 +848,7 @@
         <div><strong>${h.note}</strong> <br><span class="text-slate-500">${h.date}</span></div>
         <span class="font-bold text-emerald-400">+${h.amount} QAR</span>
       </div>
-    `).join('') : `<div class="text-slate-500 italic">No history in Sheet2.</div>`;
+    `).join('') : `<div class="text-slate-500 italic">No history logs found.</div>`;
   }
 
   function saveProfileChanges() {

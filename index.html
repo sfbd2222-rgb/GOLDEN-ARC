@@ -301,7 +301,7 @@
           <div><label class="text-blue-400 font-bold block mb-1">Coming Date</label><input type="date" id="m-input-coming" class="w-full bg-slate-950 border border-blue-600/50 rounded p-2 text-white"></div>
           <div><label class="text-slate-400 block mb-1">Note</label><textarea id="m-input-note" rows="2" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></textarea></div>
 
-          <!-- DOCUMENT UPLOADER SECTION (Drive Storage Integration) -->
+          <!-- DOCUMENT UPLOADER SECTION -->
           <div class="space-y-2 pt-3 border-t border-slate-800">
             <h5 class="font-bold text-yellow-400 uppercase">📁 Upload Employee Documents</h5>
             <div class="grid grid-cols-2 gap-2">
@@ -389,7 +389,6 @@
   </div>
 
 <script>
-  // Notun License Sheet Web App URL
   const LICENSE_API_URL = "https://script.google.com/macros/s/AKfycbzMoy44EehZ2cvPVamfVj-BM-lNl368iUMpvvhJ1g44F81xXHxHQGWR_KRYvcyLz86bCA/exec";
 
   let API_URL = ""; 
@@ -400,7 +399,6 @@
   let selectedCompanyFilter = 'ALL';
   let activeEmployeeQid = null;
 
-  // AUTO LOGIN & LICENSE CHECK ON PAGE LOAD
   window.addEventListener('DOMContentLoaded', async () => {
     const savedKey = localStorage.getItem('ga_active_license');
     const savedScriptUrl = localStorage.getItem('ga_script_url');
@@ -413,7 +411,7 @@
 
         if (data.status === "SUCCESS") {
           API_URL = data.scriptUrl;
-          localStorage.setItem('ga_folder_id', data.folderId || ''); // Save Folder ID from Column H
+          localStorage.setItem('ga_folder_id', data.folderId || '');
           document.getElementById('licenseLoginModal').classList.add('hidden');
           updatePortalHeader(data.company || savedCompanyName);
           
@@ -455,7 +453,7 @@
         localStorage.setItem('ga_license_expiry', data.expiry);
         localStorage.setItem('ga_script_url', data.scriptUrl);
         localStorage.setItem('ga_company_name', data.company || "MANAGEMENT PORTAL");
-        localStorage.setItem('ga_folder_id', data.folderId || ''); // Save Folder ID from Column H
+        localStorage.setItem('ga_folder_id', data.folderId || '');
         
         API_URL = data.scriptUrl;
         
@@ -488,13 +486,13 @@
     const badge = document.getElementById('licenseExpiryBadge');
     if (daysLeft <= 0) {
       badge.className = "inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-red-950 text-red-300 border border-red-600/50 font-bold mono";
-      badge.innerHTML = `🚨 License Expired! (${expiryDateStr})`;
+      badge.innerHTML = `🚨 License Expired! (${cleanDateStr(expiryDateStr)})`;
     } else if (daysLeft <= 30) {
       badge.className = "inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-yellow-950 text-yellow-300 border border-yellow-600/50 font-bold mono";
-      badge.innerHTML = `⚠️ License: ${daysLeft} Days Left (${expiryDateStr})`;
+      badge.innerHTML = `⚠️ License: ${daysLeft} Days Left (${cleanDateStr(expiryDateStr)})`;
     } else {
       badge.className = "inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-amber-950 text-amber-300 border border-amber-600/50 font-bold mono";
-      badge.innerHTML = `🔑 License: ${daysLeft} Days Left (${expiryDateStr})`;
+      badge.innerHTML = `🔑 License: ${daysLeft} Days Left (${cleanDateStr(expiryDateStr)})`;
     }
   }
 
@@ -539,8 +537,8 @@
 
   function updateCompanyListFromData() {
     employees.forEach(e => {
-      if (e.company && !customCompanies.includes(e.company.trim())) {
-        customCompanies.push(e.company.trim());
+      if (e.company && !customCompanies.includes(String(e.company).trim())) {
+        customCompanies.push(String(e.company).trim());
       }
     });
     populateCompanyDropdowns();
@@ -619,7 +617,6 @@
     }
   }
 
-  // UPLOAD EMPLOYEE DOCUMENT TO DRIVE FOLDER (Column H Folder ID)
   async function uploadEmployeeDoc() {
     const fileInput = document.getElementById('docFileInput');
     const docType = document.getElementById('docTypeSelect').value;
@@ -674,7 +671,7 @@
     container.innerHTML = emp.documents.map(doc => `
       <div class="flex items-center justify-between bg-slate-950 p-1.5 rounded border border-slate-800 text-[11px]">
         <div><strong class="text-gold-400">${doc.type}</strong>: <span class="text-slate-300">${doc.name}</span></div>
-        <a href="${doc.url}" target="_blank" class="px-2 py-0.5 rounded bg-blue-600 hover:bg-blue-500 text-white font-bold text-[10px]">👁️ View</a>
+        <a href="${doc.url}" target="_blank" class="px-2 py-0.5 rounded bg-blue-600 hover:bg-blue-500 text-white font-bold text-[10px]">👁️ View Document</a>
       </div>
     `).join('');
   }
@@ -760,7 +757,7 @@
       const d = getDaysRemaining(e.rpExDate);
       return d < 0 && Math.abs(d) > 80;
     }).length;
-    const comingCount = employees.filter(e => e.commingDate && e.commingDate.trim() !== '').length;
+    const comingCount = employees.filter(e => e.commingDate && String(e.commingDate).trim() !== '').length;
     const dueCount = employees.filter(e => (e.due || 0) > 0).length;
     const renewalCount = employees.filter(e => e.inRenewalReview).length;
     const dueTotal = employees.reduce((sum, e) => sum + (e.due || 0), 0);
@@ -868,7 +865,7 @@
   }
 
   function renderComingList() {
-    const list = employees.filter(e => e.commingDate && e.commingDate.trim() !== '');
+    const list = employees.filter(e => e.commingDate && String(e.commingDate).trim() !== '');
     const grid = document.getElementById('comingListGrid');
     grid.innerHTML = list.length ? list.map(e => renderCardHTML(e)).join('') : `<div class="col-span-full gold-glass p-8 text-center text-slate-400">No upcoming coming dates found.</div>`;
   }
@@ -1043,8 +1040,8 @@
     if (!isLiveRefresh) {
       document.getElementById('m-input-name').value = emp.name || '';
       
-      if (emp.company && !customCompanies.includes(emp.company.trim())) {
-        customCompanies.push(emp.company.trim());
+      if (emp.company && !customCompanies.includes(String(emp.company).trim())) {
+        customCompanies.push(String(emp.company).trim());
       }
       populateCompanyDropdowns(emp.company || '');
 

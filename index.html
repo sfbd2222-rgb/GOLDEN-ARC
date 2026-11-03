@@ -644,6 +644,7 @@
       try {
         await fetch(API_URL, {
           method: 'POST',
+          mode: 'no-cors',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
@@ -651,7 +652,7 @@
         updateSyncStatus("Connected", "bg-emerald-400");
         alert("Document uploaded successfully to Drive folder!");
         fileInput.value = '';
-        fetchSheetData();
+        setTimeout(fetchSheetData, 1000);
       } catch (err) {
         alert("Upload failed: " + err.message);
         updateSyncStatus("Error", "bg-red-400");

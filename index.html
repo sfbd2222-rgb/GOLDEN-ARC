@@ -263,6 +263,7 @@
           <div class="space-y-2 pt-2 border-t border-slate-800">
             <button onclick="saveProfileChanges()" class="w-full py-2 bg-gradient-to-r from-gold-600 to-gold-500 text-dark-950 font-bold rounded shadow">💾 Save Changes</button>
             <button onclick="flagForRenewalWithPassword()" id="btn-toggle-review" class="w-full py-1.5 bg-yellow-950/80 text-yellow-300 font-bold rounded border border-yellow-700/50">🔒 Flag for Renewal (Requires Password)</button>
+            <button onclick="deleteEmployeeWithPassword()" class="w-full py-1.5 bg-red-950 text-red-400 font-bold rounded border border-red-700/60 hover:bg-red-900 transition">❌ Cancel / Delete Employee (Password: SFBD)</button>
           </div>
         </div>
 
@@ -476,6 +477,10 @@
       if (activeEmployeeQid === String(empData.qid)) {
         openEmployeeModal(empData.qid, true);
       }
+    } else if (action === 'delete' && payload.qid) {
+      employees = employees.filter(e => String(e.qid) !== String(payload.qid));
+      renderApp();
+      closeModal('employeeModal');
     }
   }
 
@@ -877,6 +882,17 @@
       emp.inRenewalReview = true;
       postToSheet('addOrUpdate', { employee: emp });
     } else alert("Wrong Password!");
+  }
+
+  function deleteEmployeeWithPassword() {
+    if (prompt("Enter Password to Cancel/Delete Employee Record:") === "SFBD") {
+      const qid = activeEmployeeQid;
+      if (!qid) return;
+      postToSheet('delete', { qid: qid });
+      alert("Employee record cancelled and deleted successfully!");
+    } else {
+      alert("Wrong Password! Access Denied.");
+    }
   }
 
   function approveRenewalWithPassword(qid) {

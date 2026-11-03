@@ -301,6 +301,22 @@
           <div><label class="text-blue-400 font-bold block mb-1">Coming Date</label><input type="date" id="m-input-coming" class="w-full bg-slate-950 border border-blue-600/50 rounded p-2 text-white"></div>
           <div><label class="text-slate-400 block mb-1">Note</label><textarea id="m-input-note" rows="2" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></textarea></div>
 
+          <!-- DOCUMENT UPLOADER SECTION (Drive Storage Integration) -->
+          <div class="space-y-2 pt-3 border-t border-slate-800">
+            <h5 class="font-bold text-yellow-400 uppercase">📁 Upload Employee Documents</h5>
+            <div class="grid grid-cols-2 gap-2">
+              <select id="docTypeSelect" class="bg-slate-950 border border-slate-700 rounded p-1.5 text-white">
+                <option value="QID">QID Card</option>
+                <option value="Passport">Passport</option>
+                <option value="Contract">Contract</option>
+                <option value="Other">Other Document</option>
+              </select>
+              <input type="file" id="docFileInput" class="bg-slate-950 border border-slate-700 rounded p-1 text-[10px] text-slate-300">
+            </div>
+            <button onclick="uploadEmployeeDoc()" class="w-full py-1.5 bg-yellow-600 hover:bg-yellow-500 text-dark-950 font-bold rounded text-xs transition">📤 Upload to Drive Folder</button>
+            <div id="docLinksContainer" class="space-y-1 pt-1 max-h-24 overflow-y-auto"></div>
+          </div>
+
           <div class="space-y-2 pt-2 border-t border-slate-800">
             <button onclick="saveProfileChanges()" class="w-full py-2 bg-gradient-to-r from-gold-600 to-gold-500 text-dark-950 font-bold rounded shadow">💾 Save Changes</button>
             <button onclick="flagForRenewalWithPassword()" id="btn-toggle-review" class="w-full py-1.5 bg-yellow-950/80 text-yellow-300 font-bold rounded border border-yellow-700/50">🔒 Flag for Renewal (Requires Password)</button>
@@ -373,8 +389,8 @@
   </div>
 
 <script>
-  // License Sheet Apps Script Web App URL
-  const LICENSE_API_URL = "https://script.google.com/macros/s/AKfycbwKqQZPEY53SIIkZ8dmK-behp4SamDqGl_C-XE9OWFuIMzbMfIlluXJqcLfldAxqaMdyA/exec";
+  // Notun License Sheet Web App URL
+  const LICENSE_API_URL = "https://script.google.com/macros/s/AKfycbzMoy44EehZ2cvPVamfVj-BM-lNl368iUMpvvhJ1g44F81xXHxHQGWR_KRYvcyLz86bCA/exec";
 
   let API_URL = ""; 
   let employees = [];
@@ -397,6 +413,7 @@
 
         if (data.status === "SUCCESS") {
           API_URL = data.scriptUrl;
+          localStorage.setItem('ga_folder_id', data.folderId || ''); // Save Folder ID from Column H
           document.getElementById('licenseLoginModal').classList.add('hidden');
           updatePortalHeader(data.company || savedCompanyName);
           
@@ -413,7 +430,6 @@
           localStorage.clear();
         }
       } catch (e) {
-        // If offline fallback
         API_URL = savedScriptUrl;
         document.getElementById('licenseLoginModal').classList.add('hidden');
         updatePortalHeader(savedCompanyName || "MANAGEMENT PORTAL");
@@ -439,6 +455,7 @@
         localStorage.setItem('ga_license_expiry', data.expiry);
         localStorage.setItem('ga_script_url', data.scriptUrl);
         localStorage.setItem('ga_company_name', data.company || "MANAGEMENT PORTAL");
+        localStorage.setItem('ga_folder_id', data.folderId || ''); // Save Folder ID from Column H
         
         API_URL = data.scriptUrl;
         
@@ -600,6 +617,66 @@
       updateSyncStatus("Save Failed", "bg-red-400");
       alert("Failed to save data: " + e.message);
     }
+  }
+
+  // UPLOAD EMPLOYEE DOCUMENT TO DRIVE FOLDER (Column H Folder ID)
+  async function uploadEmployeeDoc() {
+    const fileInput = document.getElementById('docFileInput');
+    const docType = document.getElementById('docTypeSelect').value;
+    const folderId = localStorage.getItem('ga_folder_id');
+
+    if (!fileInput.files.length) return alert("Please select a file first!");
+    if (!folderId) return alert("Drive Folder ID not found for this license!");
+
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+
+    updateSyncStatus("Uploading Document...", "bg-amber-500");
+
+    reader.onload = async function(e) {
+      const payload = {
+        action: "uploadDocument",
+        qid: activeEmployeeQid,
+        folderId: folderId,
+        docType: docType,
+        fileName: file.name,
+        mimeType: file.type,
+        fileData: e.target.result
+      };
+
+      try {
+        await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        updateSyncStatus("Connected", "bg-emerald-400");
+        alert("Document uploaded successfully to Drive folder!");
+        fileInput.value = '';
+        fetchSheetData();
+      } catch (err) {
+        alert("Upload failed: " + err.message);
+        updateSyncStatus("Error", "bg-red-400");
+      }
+    };
+
+    reader.readAsDataURL(file);
+  }
+
+  function renderDocumentLinks(emp) {
+    const container = document.getElementById('docLinksContainer');
+    if (!emp.documents || !emp.documents.length) {
+      container.innerHTML = `<span class="text-slate-500 italic text-[11px]">No documents uploaded yet.</span>`;
+      return;
+    }
+
+    container.innerHTML = emp.documents.map(doc => `
+      <div class="flex items-center justify-between bg-slate-950 p-1.5 rounded border border-slate-800 text-[11px]">
+        <div><strong class="text-gold-400">${doc.type}</strong>: <span class="text-slate-300">${doc.name}</span></div>
+        <a href="${doc.url}" target="_blank" class="px-2 py-0.5 rounded bg-blue-600 hover:bg-blue-500 text-white font-bold text-[10px]">👁️ View</a>
+      </div>
+    `).join('');
   }
 
   function applyInstantLocalUpdate(action, payload) {
@@ -987,6 +1064,7 @@
     document.getElementById('m-ledger-due').textContent = (emp.due || 0) + ' QAR';
 
     renderHistoryLogs(emp);
+    renderDocumentLinks(emp);
     if (!isLiveRefresh) {
       document.getElementById('employeeModal').classList.remove('hidden');
     }

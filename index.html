@@ -66,7 +66,7 @@
       <div class="space-y-3">
         <div>
           <label class="text-slate-400 block mb-1">License Key *</label>
-          <input type="text" id="licenseKeyBox" placeholder="e.g. SFBD-2026-8841-A92B" class="w-full bg-slate-900 border border-slate-700 rounded p-2.5 text-white mono uppercase text-center font-bold tracking-wider">
+          <input type="text" id="licenseKeyBox" placeholder="e.g. SFBD-2026-8880-A92A" class="w-full bg-slate-900 border border-slate-700 rounded p-2.5 text-white mono uppercase text-center font-bold tracking-wider">
         </div>
         
         <button onclick="checkLicenseKeyServer()" class="w-full py-2.5 bg-gradient-to-r from-gold-600 to-gold-500 text-dark-950 font-bold rounded shadow uppercase tracking-wider">
@@ -88,7 +88,6 @@
             <h1 id="headerCompanyName" class="text-lg md:text-xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-gold-300 via-yellow-100 to-gold-500 uppercase">
               Loading Company...
             </h1>
-            <button onclick="promptChangeCompanyName()" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-gold-400 px-2 py-0.5 rounded border border-gold-500/30" title="Edit Company Name">✏️ Edit</button>
           </div>
           <div class="flex items-center gap-2 flex-wrap text-xs mt-0.5">
             <span id="syncStatus" class="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-700/50">
@@ -377,13 +376,10 @@
   </div>
 
 <script>
-  // Obfuscated & Secured Backend Employee API Endpoint
-  const _0x1a = ["https", "script.google.com", "macros", "s", "AKfycby3Qp1SdBii6lE--B298RMNAcm-cH19FndBVE6mXiBkzJq_FGLE3Md6JtHW84oKR5Ocdw", "exec"];
-  const API_URL = `${_0x1a[0]}://${_0x1a[1]}/${_0x1a[2]}/${_0x1a[3]}/${_0x1a[4]}/${_0x1a[5]}`;
+  // License Sheet Apps Script Web App URL
+  const LICENSE_API_URL = "https://script.google.com/macros/s/AKfycbwKqQZPEY53SIIkZ8dmK-behp4SamDqGl_C-XE9OWFuIMzbMfIlluXJqcLfldAxqaMdyA/exec";
 
-  // 🔴 APNAR LICENSE SHEET APPS SCRIPT WEB APP URL EKHANE BOSHIYE DIN
-  const LICENSE_API_URL = "APNAR_LICENSE_WEB_APP_URL_EKHANE_DIN";
-
+  let API_URL = ""; 
   let employees = [];
   let customCompanies = ["GENERAL CONTRACTING & TRADING"];
   let currentTab = 'directory';
@@ -393,12 +389,12 @@
 
   // AUTO LOGIN & LICENSE CHECK ON PAGE LOAD
   window.addEventListener('DOMContentLoaded', () => {
-    loadPortalCompanyName();
-    
     const savedKey = localStorage.getItem('ga_active_license');
     const savedExpiry = localStorage.getItem('ga_license_expiry');
+    const savedScriptUrl = localStorage.getItem('ga_script_url');
+    const savedCompanyName = localStorage.getItem('ga_company_name');
 
-    if (savedKey && savedExpiry) {
+    if (savedKey && savedExpiry && savedScriptUrl) {
       const expDate = new Date(savedExpiry);
       const now = new Date();
       now.setHours(0, 0, 0, 0);
@@ -406,8 +402,9 @@
       const daysLeft = Math.ceil((expDate - now) / (1000 * 60 * 60 * 24));
 
       if (daysLeft >= 0) {
-        // Auto-login success!
+        API_URL = savedScriptUrl;
         document.getElementById('licenseLoginModal').classList.add('hidden');
+        updatePortalHeader(savedCompanyName);
         updateLicenseCounterDisplay(daysLeft, savedExpiry);
         fetchSheetData();
         return;
@@ -416,37 +413,8 @@
         localStorage.clear();
       }
     }
-    // Show login modal if not logged in
     document.getElementById('licenseLoginModal').classList.remove('hidden');
   });
-
-  function loadPortalCompanyName() {
-    let savedComp = localStorage.getItem('portal_company_name');
-    if (!savedComp) {
-      savedComp = "MANAGEMENT PORTAL";
-      localStorage.setItem('portal_company_name', savedComp);
-    }
-    document.getElementById('headerCompanyName').textContent = savedComp;
-    
-    // Set first letters for logo badge
-    const initials = savedComp.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
-    document.getElementById('headerLogoText').textContent = initials || 'MP';
-  }
-
-  function promptChangeCompanyName() {
-    const pwd = prompt("Enter Password to change Company Name:");
-    if (pwd === "SFBD") {
-      const newName = prompt("Enter New Company Name:", localStorage.getItem('portal_company_name') || '');
-      if (newName && newName.trim() !== '') {
-        const cleanName = newName.trim().toUpperCase();
-        localStorage.setItem('portal_company_name', cleanName);
-        loadPortalCompanyName();
-        alert("Company Name updated successfully!");
-      }
-    } else if (pwd !== null) {
-      alert("Wrong Password! Access Denied.");
-    }
-  }
 
   async function checkLicenseKeyServer() {
     const key = document.getElementById('licenseKeyBox').value.trim();
@@ -461,6 +429,10 @@
       if (data.status === "SUCCESS") {
         localStorage.setItem('ga_active_license', key);
         localStorage.setItem('ga_license_expiry', data.expiry);
+        localStorage.setItem('ga_script_url', data.scriptUrl);
+        localStorage.setItem('ga_company_name', data.company || "MANAGEMENT PORTAL");
+        
+        API_URL = data.scriptUrl;
         
         const expDate = new Date(data.expiry);
         const now = new Date();
@@ -468,6 +440,7 @@
         const daysLeft = Math.ceil((expDate - now) / (1000 * 60 * 60 * 24));
 
         document.getElementById('licenseLoginModal').classList.add('hidden');
+        updatePortalHeader(data.company || "MANAGEMENT PORTAL");
         updateLicenseCounterDisplay(daysLeft, data.expiry);
         alert(`Welcome ${data.client}! License unlocked successfully (${data.plan}).`);
         fetchSheetData();
@@ -476,19 +449,14 @@
         updateSyncStatus("License Invalid", "bg-red-400");
       }
     } catch (e) {
-      // Fallback for test/offline key
-      if (key.toUpperCase() === "SFBD-2026-8841-A92B") {
-        const testExp = '2027-06-15';
-        localStorage.setItem('ga_active_license', key);
-        localStorage.setItem('ga_license_expiry', testExp);
-        document.getElementById('licenseLoginModal').classList.add('hidden');
-        updateLicenseCounterDisplay(225, testExp);
-        alert("License Key Verified Successfully!");
-        fetchSheetData();
-      } else {
-        alert("Verification failed. Please check internet or deployment URL.");
-      }
+      alert("Verification failed. Please check your internet connection or URL.");
     }
+  }
+
+  function updatePortalHeader(compName) {
+    document.getElementById('headerCompanyName').textContent = compName;
+    const initials = compName.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+    document.getElementById('headerLogoText').textContent = initials || 'MP';
   }
 
   function updateLicenseCounterDisplay(daysLeft, expiryDateStr) {
@@ -513,6 +481,7 @@
   }
 
   async function fetchSheetData() {
+    if (!API_URL) return;
     updateSyncStatus("Syncing...", "bg-amber-500");
     try {
       const res = await fetch(API_URL);
@@ -607,6 +576,7 @@
   }
 
   async function postToSheet(action, payload) {
+    if (!API_URL) return;
     updateSyncStatus("Saving...", "bg-amber-500");
     try {
       await fetch(API_URL, {
@@ -879,7 +849,7 @@
     const compName = selectedCompanyFilter === 'ALL' ? 'All Companies' : selectedCompanyFilter;
     const compTotal = filtered.length;
     const compExpired = filtered.filter(e => getDaysRemaining(e.rpExDate) < 0).length;
-    const currentPortalName = localStorage.getItem('portal_company_name') || 'MANAGEMENT PORTAL';
+    const currentPortalName = localStorage.getItem('ga_company_name') || 'MANAGEMENT PORTAL';
 
     let htmlContent = `
       <div style="padding: 20px; font-family: Arial, sans-serif; color: #000; background: #fff;">

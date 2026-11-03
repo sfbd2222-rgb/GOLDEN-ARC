@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>GOLDEN ARC PORTAL</title>
+<title>MANAGEMENT PORTAL</title>
 <!-- Tailwind CSS -->
 <script src="https://cdn.tailwindcss.com"></script>
 <!-- HTML2PDF Library -->
@@ -41,13 +41,13 @@
 <body class="min-h-screen pb-12">
 
   <!-- LICENSE LOGIN GATE MODAL -->
-  <div id="licenseLoginModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/95 backdrop-blur-md">
+  <div id="licenseLoginModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/95 backdrop-blur-md hidden">
     <div class="gold-glass rounded-2xl border border-gold-500/40 w-full max-w-md p-6 text-xs space-y-4 shadow-2xl">
       <div class="text-center space-y-1">
         <div class="w-12 h-12 mx-auto rounded-xl bg-gradient-to-tr from-gold-700 via-gold-500 to-yellow-200 flex items-center justify-center text-dark-950 font-black text-2xl shadow-lg border border-gold-300 mb-2">
-          GA
+          MP
         </div>
-        <h2 class="text-base font-bold text-gold-300">GOLDEN ARC PORTAL ACCESS</h2>
+        <h2 class="text-base font-bold text-gold-300">MANAGEMENT PORTAL ACCESS</h2>
         <p class="text-slate-400">Enter your License Key to access the management system.</p>
       </div>
 
@@ -80,13 +80,16 @@
   <header class="sticky top-0 z-40 gold-glass border-b border-gold-600/30 px-4 py-4 shadow-2xl">
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-3">
-        <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-gold-700 via-gold-500 to-yellow-200 flex items-center justify-center text-dark-950 font-black text-2xl shadow-lg border border-gold-300">
-          GA
+        <div id="headerLogoText" class="w-12 h-12 rounded-xl bg-gradient-to-tr from-gold-700 via-gold-500 to-yellow-200 flex items-center justify-center text-dark-950 font-black text-2xl shadow-lg border border-gold-300">
+          MP
         </div>
         <div>
-          <h1 class="text-lg md:text-xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-gold-300 via-yellow-100 to-gold-500 uppercase">
-            Golden Arc Trading & Contracting
-          </h1>
+          <div class="flex items-center gap-2">
+            <h1 id="headerCompanyName" class="text-lg md:text-xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-gold-300 via-yellow-100 to-gold-500 uppercase">
+              Loading Company...
+            </h1>
+            <button onclick="promptChangeCompanyName()" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-gold-400 px-2 py-0.5 rounded border border-gold-500/30" title="Edit Company Name">✏️ Edit</button>
+          </div>
           <div class="flex items-center gap-2 flex-wrap text-xs mt-0.5">
             <span id="syncStatus" class="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-700/50">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Connected
@@ -379,10 +382,10 @@
   const API_URL = `${_0x1a[0]}://${_0x1a[1]}/${_0x1a[2]}/${_0x1a[3]}/${_0x1a[4]}/${_0x1a[5]}`;
 
   // 🔴 APNAR LICENSE SHEET APPS SCRIPT WEB APP URL EKHANE BOSHIYE DIN
-  const LICENSE_API_URL = "https://script.google.com/macros/s/AKfycbwKqQZPEY53SIIkZ8dmK-behp4SamDqGl_C-XE9OWFuIMzbMfIlluXJqcLfldAxqaMdyA/exec";
+  const LICENSE_API_URL = "APNAR_LICENSE_WEB_APP_URL_EKHANE_DIN";
 
   let employees = [];
-  let customCompanies = ["GOLDEN ARC TRADING & CONTRACTING COMPANY"];
+  let customCompanies = ["GENERAL CONTRACTING & TRADING"];
   let currentTab = 'directory';
   let activeFilter = 'all';
   let selectedCompanyFilter = 'ALL';
@@ -390,6 +393,8 @@
 
   // AUTO LOGIN & LICENSE CHECK ON PAGE LOAD
   window.addEventListener('DOMContentLoaded', () => {
+    loadPortalCompanyName();
+    
     const savedKey = localStorage.getItem('ga_active_license');
     const savedExpiry = localStorage.getItem('ga_license_expiry');
 
@@ -414,6 +419,34 @@
     // Show login modal if not logged in
     document.getElementById('licenseLoginModal').classList.remove('hidden');
   });
+
+  function loadPortalCompanyName() {
+    let savedComp = localStorage.getItem('portal_company_name');
+    if (!savedComp) {
+      savedComp = "MANAGEMENT PORTAL";
+      localStorage.setItem('portal_company_name', savedComp);
+    }
+    document.getElementById('headerCompanyName').textContent = savedComp;
+    
+    // Set first letters for logo badge
+    const initials = savedComp.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+    document.getElementById('headerLogoText').textContent = initials || 'MP';
+  }
+
+  function promptChangeCompanyName() {
+    const pwd = prompt("Enter Password to change Company Name:");
+    if (pwd === "SFBD") {
+      const newName = prompt("Enter New Company Name:", localStorage.getItem('portal_company_name') || '');
+      if (newName && newName.trim() !== '') {
+        const cleanName = newName.trim().toUpperCase();
+        localStorage.setItem('portal_company_name', cleanName);
+        loadPortalCompanyName();
+        alert("Company Name updated successfully!");
+      }
+    } else if (pwd !== null) {
+      alert("Wrong Password! Access Denied.");
+    }
+  }
 
   async function checkLicenseKeyServer() {
     const key = document.getElementById('licenseKeyBox').value.trim();
@@ -691,7 +724,7 @@
     else comingBadge.classList.add('hidden');
 
     const dueBadge = document.getElementById('due-badge');
-    if (dueCount > 0) { dueBadge.textContent = dueCount; dueBadge.classList.remove('hidden'); }
+    if (dueCount > 0) { dueBadge.textContent = dueCount; dueBadge.classList.add('hidden'); }
     else dueBadge.classList.add('hidden');
 
     const payBadge = document.getElementById('payhistory-badge');
@@ -846,10 +879,11 @@
     const compName = selectedCompanyFilter === 'ALL' ? 'All Companies' : selectedCompanyFilter;
     const compTotal = filtered.length;
     const compExpired = filtered.filter(e => getDaysRemaining(e.rpExDate) < 0).length;
+    const currentPortalName = localStorage.getItem('portal_company_name') || 'MANAGEMENT PORTAL';
 
     let htmlContent = `
       <div style="padding: 20px; font-family: Arial, sans-serif; color: #000; background: #fff;">
-        <h2 style="text-align: center; color: #d4af37; margin-bottom: 5px;">GOLDEN ARC TRADING & CONTRACTING</h2>
+        <h2 style="text-align: center; color: #d4af37; margin-bottom: 5px;">${currentPortalName}</h2>
         <h3 style="text-align: center; margin-top: 0; font-size: 14px;">Company Report: ${compName}</h3>
         <p style="font-size: 11px; margin-bottom: 10px;"><strong>Total Staff:</strong> ${compTotal} | <strong>Expired QID:</strong> ${compExpired}</p>
         <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 10px;">

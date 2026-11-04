@@ -302,7 +302,7 @@
 
           <!-- DOCUMENT UPLOADER & CAMERA SECTION -->
           <div class="space-y-2 pt-3 border-t border-slate-800">
-            <h5 class="font-bold text-yellow-400 uppercase">📁 Direct Upload / Camera Capture</h5>
+            <h5 class="font-bold text-yellow-400 uppercase">📁 Upload Document / Camera Image</h5>
             <div class="grid grid-cols-2 gap-2">
               <select id="docTypeSelect" class="bg-slate-950 border border-slate-700 rounded p-1.5 text-white font-semibold">
                 <option value="QID Card">QID Card (Col R)</option>
@@ -311,7 +311,7 @@
                 <option value="Agreement">Agreement</option>
                 <option value="Other Document">Other Document</option>
               </select>
-              <!-- Input supporting camera capture or file select -->
+              <!-- Camera capture & File choose input -->
               <input type="file" id="docFileInput" accept="image/*,application/pdf" capture="environment" class="bg-slate-950 border border-slate-700 rounded p-1 text-[10px] text-slate-300">
             </div>
             <button onclick="uploadEmployeeDoc()" class="w-full py-2 bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-500 hover:to-yellow-400 text-dark-950 font-bold rounded text-xs transition shadow flex items-center justify-center gap-1">
@@ -626,7 +626,7 @@
     const folderId = localStorage.getItem('ga_folder_id');
 
     if (!fileInput.files.length) return alert("Please select or capture an image/file first!");
-    if (!folderId) return alert("Drive Folder ID not found in license storage!");
+    if (!folderId) return alert("Drive Folder ID missing in license storage!");
 
     const file = fileInput.files[0];
     const reader = new FileReader();

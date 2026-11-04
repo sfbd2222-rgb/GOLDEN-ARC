@@ -51,13 +51,33 @@
         <p class="text-slate-400">Enter your License Key to access the management system.</p>
       </div>
 
-      <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-[11px] space-y-1.5 text-slate-300">
-        <div class="font-bold text-gold-400">🏷️ Official License Plans:</div>
-        <div class="flex justify-between items-center bg-slate-900 px-2 py-1 rounded">
-          <span>1 Year License Key:</span> <strong class="text-white mono">300 QAR</strong>
+      <!-- PROFESSIONAL 2-TAB / CARD LICENSE PLANS -->
+      <div class="space-y-2">
+        <div class="text-center font-bold text-gold-400 text-xs tracking-wider uppercase flex items-center justify-center gap-1">
+          <span>🏷️ Official License Plans</span>
         </div>
-        <div class="flex justify-between items-center bg-slate-900 px-2 py-1 rounded">
-          <span>2 Years License Key:</span> <strong class="text-white mono">500 QAR</strong>
+        <div class="grid grid-cols-2 gap-3">
+          <!-- 1 YEAR PLAN CARD -->
+          <div class="relative group bg-gradient-to-b from-slate-900 to-slate-950 p-3 rounded-xl border border-gold-500/30 hover:border-gold-400 transition shadow-lg text-center overflow-hidden">
+            <div class="absolute -top-6 -right-6 w-12 h-12 bg-gold-500/10 rounded-full blur-xl group-hover:bg-gold-500/20 transition"></div>
+            <div class="text-[10px] uppercase font-bold tracking-wider text-slate-400">Standard Plan</div>
+            <div class="text-xs font-black text-white mt-0.5">1 YEAR</div>
+            <div class="my-2 py-1 bg-gradient-to-r from-gold-950/60 via-gold-900/80 to-gold-950/60 rounded-lg border border-gold-500/40 shadow-inner">
+              <span class="text-base font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-amber-200 to-gold-400 mono">365 QAR</span>
+            </div>
+            <div class="text-[9px] text-emerald-400 font-semibold">✓ Full Access</div>
+          </div>
+
+          <!-- 2 YEARS PLAN CARD -->
+          <div class="relative group bg-gradient-to-b from-amber-950/40 via-slate-900 to-slate-950 p-3 rounded-xl border-2 border-gold-400 hover:border-yellow-300 transition shadow-xl shadow-gold-950/50 text-center overflow-hidden">
+            <div class="absolute top-0 right-0 bg-gradient-to-r from-gold-600 to-yellow-400 text-dark-950 font-black text-[8px] px-1.5 py-0.5 rounded-bl-md uppercase tracking-tighter">Best Value</div>
+            <div class="text-[10px] uppercase font-bold tracking-wider text-amber-300 mt-1">Premium Plan</div>
+            <div class="text-xs font-black text-white mt-0.5">2 YEARS</div>
+            <div class="my-2 py-1 bg-gradient-to-r from-amber-500/20 via-yellow-400/30 to-amber-500/20 rounded-lg border border-yellow-400/60 shadow-[0_0_12px_rgba(250,204,21,0.25)]">
+              <span class="text-lg font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 via-amber-300 to-yellow-400 mono drop-shadow">500 QAR</span>
+            </div>
+            <div class="text-[9px] text-yellow-300 font-semibold">🔥 Save Big Value</div>
+          </div>
         </div>
       </div>
 
@@ -300,23 +320,8 @@
           <div><label class="text-blue-400 font-bold block mb-1">Coming Date</label><input type="date" id="m-input-coming" class="w-full bg-slate-950 border border-blue-600/50 rounded p-2 text-white"></div>
           <div><label class="text-slate-400 block mb-1">Note</label><textarea id="m-input-note" rows="2" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></textarea></div>
 
-          <!-- DOCUMENT UPLOADER & CAMERA SECTION -->
+          <!-- DOCUMENT LINKS SECTION -->
           <div class="space-y-2 pt-3 border-t border-slate-800">
-            <h5 class="font-bold text-yellow-400 uppercase">📁 Upload Document / Camera Image</h5>
-            <div class="grid grid-cols-2 gap-2">
-              <select id="docTypeSelect" class="bg-slate-950 border border-slate-700 rounded p-1.5 text-white font-semibold">
-                <option value="QID Card">QID Card (Col R)</option>
-                <option value="Passport">Passport (Col S)</option>
-                <option value="Contract">Contract</option>
-                <option value="Agreement">Agreement</option>
-                <option value="Other Document">Other Document</option>
-              </select>
-              <!-- Camera capture & File choose input -->
-              <input type="file" id="docFileInput" accept="image/*,application/pdf" capture="environment" class="bg-slate-950 border border-slate-700 rounded p-1 text-[10px] text-slate-300">
-            </div>
-            <button onclick="uploadEmployeeDoc()" class="w-full py-2 bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-500 hover:to-yellow-400 text-dark-950 font-bold rounded text-xs transition shadow flex items-center justify-center gap-1">
-              📷 Capture / Upload Document
-            </button>
             <div id="docLinksContainer" class="space-y-1 pt-1 max-h-32 overflow-y-auto"></div>
           </div>
 

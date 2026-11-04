@@ -300,9 +300,9 @@
           <div><label class="text-blue-400 font-bold block mb-1">Coming Date</label><input type="date" id="m-input-coming" class="w-full bg-slate-950 border border-blue-600/50 rounded p-2 text-white"></div>
           <div><label class="text-slate-400 block mb-1">Note</label><textarea id="m-input-note" rows="2" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></textarea></div>
 
-          <!-- DOCUMENT UPLOADER & CAMERA SECTION -->
+          <!-- DOCUMENT UPLOADER & CAMERA SECTION (Same System as Reference App) -->
           <div class="space-y-2 pt-3 border-t border-slate-800">
-            <h5 class="font-bold text-yellow-400 uppercase">📁 Direct Document / Camera Upload</h5>
+            <h5 class="font-bold text-yellow-400 uppercase">📁 Upload Document / Camera Image</h5>
             <div class="grid grid-cols-2 gap-2">
               <select id="docTypeSelect" class="bg-slate-950 border border-slate-700 rounded p-1.5 text-white font-semibold">
                 <option value="QID Card">QID Card (Col R)</option>
@@ -619,6 +619,17 @@
     }
   }
 
+  // Base64 File Reader function (Same as Good Dream Real Estate reference app)[cite: 10]
+  function getBase64(file) {
+    return new Promise((resolve, reject) => {
+      if(!file) resolve("");
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = error => reject(error);
+    });
+  }
+
   async function uploadEmployeeDoc() {
     const fileInput = document.getElementById('docFileInput');
     const docType = document.getElementById('docTypeSelect').value;
@@ -627,11 +638,11 @@
     if (!fileInput.files.length) return alert("Please select or capture a file first!");
 
     const file = fileInput.files[0];
-    const reader = new FileReader();
-
     updateSyncStatus("Uploading Document...", "bg-amber-500");
 
-    reader.onload = async function(e) {
+    try {
+      const base64Data = await getBase64(file);
+
       const payload = {
         action: "uploadDocument",
         qid: activeEmployeeQid,
@@ -639,28 +650,24 @@
         docType: docType,
         fileName: file.name,
         mimeType: file.type,
-        fileData: e.target.result
+        fileData: base64Data
       };
 
-      try {
-        await fetch(API_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(payload)
-        });
+      await fetch(API_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
 
-        updateSyncStatus("Connected", "bg-emerald-400");
-        alert("Upload request sent successfully! Checking sheet in 3 seconds...");
-        fileInput.value = '';
-        setTimeout(fetchSheetData, 3000);
-      } catch (err) {
-        alert("Upload failed: " + err.message);
-        updateSyncStatus("Error", "bg-red-400");
-      }
-    };
-
-    reader.readAsDataURL(file);
+      updateSyncStatus("Connected", "bg-emerald-400");
+      alert("✅ Upload request sent successfully! Checking sheet in 3 seconds...");
+      fileInput.value = '';
+      setTimeout(fetchSheetData, 3000);
+    } catch (err) {
+      alert("Upload failed: " + err.message);
+      updateSyncStatus("Error", "bg-red-400");
+    }
   }
 
   function renderDocumentLinks(emp) {

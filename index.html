@@ -59,7 +59,6 @@
         <div class="flex justify-between items-center bg-slate-900 px-2 py-1 rounded">
           <span>2 Years License Key:</span> <strong class="text-white mono">500 QAR</strong>
         </div>
-        <p class="text-[10px] text-slate-500 pt-1">To purchase or renew your license key, please contact the system administrator directly.</p>
       </div>
 
       <div class="space-y-3">
@@ -301,20 +300,24 @@
           <div><label class="text-blue-400 font-bold block mb-1">Coming Date</label><input type="date" id="m-input-coming" class="w-full bg-slate-950 border border-blue-600/50 rounded p-2 text-white"></div>
           <div><label class="text-slate-400 block mb-1">Note</label><textarea id="m-input-note" rows="2" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></textarea></div>
 
-          <!-- DOCUMENT UPLOADER SECTION -->
+          <!-- DOCUMENT UPLOADER & CAMERA SECTION -->
           <div class="space-y-2 pt-3 border-t border-slate-800">
-            <h5 class="font-bold text-yellow-400 uppercase">📁 Upload Employee Documents</h5>
+            <h5 class="font-bold text-yellow-400 uppercase">📁 Direct Upload / Camera Capture</h5>
             <div class="grid grid-cols-2 gap-2">
-              <select id="docTypeSelect" class="bg-slate-950 border border-slate-700 rounded p-1.5 text-white">
-                <option value="QID">QID Card</option>
-                <option value="Passport">Passport</option>
+              <select id="docTypeSelect" class="bg-slate-950 border border-slate-700 rounded p-1.5 text-white font-semibold">
+                <option value="QID Card">QID Card (Col R)</option>
+                <option value="Passport">Passport (Col S)</option>
                 <option value="Contract">Contract</option>
-                <option value="Other">Other Document</option>
+                <option value="Agreement">Agreement</option>
+                <option value="Other Document">Other Document</option>
               </select>
-              <input type="file" id="docFileInput" class="bg-slate-950 border border-slate-700 rounded p-1 text-[10px] text-slate-300">
+              <!-- Input supporting camera capture or file select -->
+              <input type="file" id="docFileInput" accept="image/*,application/pdf" capture="environment" class="bg-slate-950 border border-slate-700 rounded p-1 text-[10px] text-slate-300">
             </div>
-            <button onclick="uploadEmployeeDoc()" class="w-full py-1.5 bg-yellow-600 hover:bg-yellow-500 text-dark-950 font-bold rounded text-xs transition">📤 Upload to Drive Folder</button>
-            <div id="docLinksContainer" class="space-y-1 pt-1 max-h-24 overflow-y-auto"></div>
+            <button onclick="uploadEmployeeDoc()" class="w-full py-2 bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-500 hover:to-yellow-400 text-dark-950 font-bold rounded text-xs transition shadow flex items-center justify-center gap-1">
+              📷 Capture / Upload Document
+            </button>
+            <div id="docLinksContainer" class="space-y-1 pt-1 max-h-32 overflow-y-auto"></div>
           </div>
 
           <div class="space-y-2 pt-2 border-t border-slate-800">
@@ -605,12 +608,12 @@
       await fetch(API_URL, {
         method: 'POST',
         mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: action, ...payload })
       });
       updateSyncStatus("Connected", "bg-emerald-400");
       applyInstantLocalUpdate(action, payload);
-      setTimeout(fetchSheetData, 800);
+      setTimeout(fetchSheetData, 1000);
     } catch (e) {
       updateSyncStatus("Save Failed", "bg-red-400");
       alert("Failed to save data: " + e.message);
@@ -622,8 +625,8 @@
     const docType = document.getElementById('docTypeSelect').value;
     const folderId = localStorage.getItem('ga_folder_id');
 
-    if (!fileInput.files.length) return alert("Please select a file first!");
-    if (!folderId) return alert("Drive Folder ID not found for this license!");
+    if (!fileInput.files.length) return alert("Please select or capture an image/file first!");
+    if (!folderId) return alert("Drive Folder ID not found in license storage!");
 
     const file = fileInput.files[0];
     const reader = new FileReader();
@@ -645,14 +648,14 @@
         await fetch(API_URL, {
           method: 'POST',
           mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify(payload)
         });
 
         updateSyncStatus("Connected", "bg-emerald-400");
-        alert("Document uploaded successfully to Drive folder!");
+        alert("Document/Image uploaded successfully!");
         fileInput.value = '';
-        setTimeout(fetchSheetData, 1000);
+        setTimeout(fetchSheetData, 2000);
       } catch (err) {
         alert("Upload failed: " + err.message);
         updateSyncStatus("Error", "bg-red-400");
@@ -664,17 +667,35 @@
 
   function renderDocumentLinks(emp) {
     const container = document.getElementById('docLinksContainer');
-    if (!emp.documents || !emp.documents.length) {
-      container.innerHTML = `<span class="text-slate-500 italic text-[11px]">No documents uploaded yet.</span>`;
-      return;
+    let linksHtml = '';
+
+    if (emp.qidDocUrl) {
+      linksHtml += `
+        <div class="flex items-center justify-between bg-slate-950 p-1.5 rounded border border-slate-800 text-[11px]">
+          <div><strong class="text-gold-400">QID Card (Col R)</strong></div>
+          <a href="${emp.qidDocUrl}" target="_blank" class="px-2 py-0.5 rounded bg-blue-600 hover:bg-blue-500 text-white font-bold text-[10px]">👁️ View QID</a>
+        </div>`;
     }
 
-    container.innerHTML = emp.documents.map(doc => `
-      <div class="flex items-center justify-between bg-slate-950 p-1.5 rounded border border-slate-800 text-[11px]">
-        <div><strong class="text-gold-400">${doc.type}</strong>: <span class="text-slate-300">${doc.name}</span></div>
-        <a href="${doc.url}" target="_blank" class="px-2 py-0.5 rounded bg-blue-600 hover:bg-blue-500 text-white font-bold text-[10px]">👁️ View Document</a>
-      </div>
-    `).join('');
+    if (emp.passportDocUrl) {
+      linksHtml += `
+        <div class="flex items-center justify-between bg-slate-950 p-1.5 rounded border border-slate-800 text-[11px]">
+          <div><strong class="text-gold-400">Passport (Col S)</strong></div>
+          <a href="${emp.passportDocUrl}" target="_blank" class="px-2 py-0.5 rounded bg-blue-600 hover:bg-blue-500 text-white font-bold text-[10px]">👁️ View Passport</a>
+        </div>`;
+    }
+
+    if (emp.documents && emp.documents.length) {
+      emp.documents.forEach(doc => {
+        linksHtml += `
+          <div class="flex items-center justify-between bg-slate-950 p-1.5 rounded border border-slate-800 text-[11px]">
+            <div><strong class="text-gold-400">${doc.type}</strong>: <span class="text-slate-300">${doc.name}</span></div>
+            <a href="${doc.url}" target="_blank" class="px-2 py-0.5 rounded bg-blue-600 hover:bg-blue-500 text-white font-bold text-[10px]">👁️ View Document</a>
+          </div>`;
+      });
+    }
+
+    container.innerHTML = linksHtml || `<span class="text-slate-500 italic text-[11px]">No documents uploaded yet.</span>`;
   }
 
   function applyInstantLocalUpdate(action, payload) {

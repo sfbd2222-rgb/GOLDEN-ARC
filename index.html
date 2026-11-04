@@ -623,10 +623,9 @@
   async function uploadEmployeeDoc() {
     const fileInput = document.getElementById('docFileInput');
     const docType = document.getElementById('docTypeSelect').value;
-    const folderId = localStorage.getItem('ga_folder_id');
+    const folderId = localStorage.getItem('ga_folder_id') || "";
 
-    if (!fileInput.files.length) return alert("Please select or capture an image/file first!");
-    if (!folderId) return alert("Drive Folder ID missing in license storage!");
+    if (!fileInput.files.length) return alert("Please select or capture a file first!");
 
     const file = fileInput.files[0];
     const reader = new FileReader();
@@ -653,9 +652,9 @@
         });
 
         updateSyncStatus("Connected", "bg-emerald-400");
-        alert("Document/Image uploaded successfully!");
+        alert("Upload request sent successfully! Checking sheet in 3 seconds...");
         fileInput.value = '';
-        setTimeout(fetchSheetData, 2000);
+        setTimeout(fetchSheetData, 3000);
       } catch (err) {
         alert("Upload failed: " + err.message);
         updateSyncStatus("Error", "bg-red-400");

@@ -48,37 +48,7 @@
           MP
         </div>
         <h2 class="text-base font-bold text-gold-300">MANAGEMENT PORTAL ACCESS</h2>
-        <p class="text-slate-400">Enter your License Key to access the management system.</p>
-      </div>
-
-      <!-- PROFESSIONAL 2-TAB / CARD LICENSE PLANS -->
-      <div class="space-y-2">
-        <div class="text-center font-bold text-gold-400 text-xs tracking-wider uppercase flex items-center justify-center gap-1">
-          <span>🏷️ Official License Plans</span>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <!-- 1 YEAR PLAN CARD -->
-          <div class="relative group bg-gradient-to-b from-slate-900 to-slate-950 p-3 rounded-xl border border-gold-500/30 hover:border-gold-400 transition shadow-lg text-center overflow-hidden">
-            <div class="absolute -top-6 -right-6 w-12 h-12 bg-gold-500/10 rounded-full blur-xl group-hover:bg-gold-500/20 transition"></div>
-            <div class="text-[10px] uppercase font-bold tracking-wider text-slate-400">Standard Plan</div>
-            <div class="text-xs font-black text-white mt-0.5">1 YEAR</div>
-            <div class="my-2 py-1 bg-gradient-to-r from-gold-950/60 via-gold-900/80 to-gold-950/60 rounded-lg border border-gold-500/40 shadow-inner">
-              <span class="text-base font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-amber-200 to-gold-400 mono">365 QAR</span>
-            </div>
-            <div class="text-[9px] text-emerald-400 font-semibold">✓ Full Access</div>
-          </div>
-
-          <!-- 2 YEARS PLAN CARD -->
-          <div class="relative group bg-gradient-to-b from-amber-950/40 via-slate-900 to-slate-950 p-3 rounded-xl border-2 border-gold-400 hover:border-yellow-300 transition shadow-xl shadow-gold-950/50 text-center overflow-hidden">
-            <div class="absolute top-0 right-0 bg-gradient-to-r from-gold-600 to-yellow-400 text-dark-950 font-black text-[8px] px-1.5 py-0.5 rounded-bl-md uppercase tracking-tighter">Best Value</div>
-            <div class="text-[10px] uppercase font-bold tracking-wider text-amber-300 mt-1">Premium Plan</div>
-            <div class="text-xs font-black text-white mt-0.5">2 YEARS</div>
-            <div class="my-2 py-1 bg-gradient-to-r from-amber-500/20 via-yellow-400/30 to-amber-500/20 rounded-lg border border-yellow-400/60 shadow-[0_0_12px_rgba(250,204,21,0.25)]">
-              <span class="text-lg font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 via-amber-300 to-yellow-400 mono drop-shadow">500 QAR</span>
-            </div>
-            <div class="text-[9px] text-yellow-300 font-semibold">🔥 Save Big Value</div>
-          </div>
-        </div>
+        <p class="text-slate-400">Enter your License Key to access the cloud management system.</p>
       </div>
 
       <div class="space-y-3">
@@ -88,7 +58,7 @@
         </div>
         
         <button onclick="checkLicenseKeyServer()" class="w-full py-2.5 bg-gradient-to-r from-gold-600 to-gold-500 text-dark-950 font-bold rounded shadow uppercase tracking-wider">
-          🔐 Verify & Unlock Portal
+          🔐 Verify & Connect Live Sheet
         </button>
       </div>
     </div>
@@ -104,15 +74,12 @@
         <div>
           <div class="flex items-center gap-2">
             <h1 id="headerCompanyName" class="text-lg md:text-xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-gold-300 via-yellow-100 to-gold-500 uppercase">
-              Loading Company...
+              Loading Portal...
             </h1>
           </div>
           <div class="flex items-center gap-2 flex-wrap text-xs mt-0.5">
             <span id="syncStatus" class="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-700/50">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Connected
-            </span>
-            <span id="licenseExpiryBadge" class="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-amber-950 text-amber-300 border border-amber-600/50 font-bold mono">
-              🔑 License: Checking...
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> ☁️ 100% Online Sync
             </span>
           </div>
         </div>
@@ -120,7 +87,7 @@
 
       <div class="flex items-center gap-2 flex-wrap">
         <button onclick="fetchSheetData()" class="px-3 py-2 rounded-lg bg-dark-800 hover:bg-dark-700 text-gold-400 font-semibold text-xs border border-gold-500/35 transition flex items-center gap-1">
-          🔄 Refresh Data
+          🔄 Fetch Sheet Data
         </button>
         <button onclick="openAddEmployeeModal()" class="px-4 py-2 rounded-lg bg-gradient-to-r from-gold-600 to-gold-500 hover:from-gold-500 text-dark-950 font-bold text-xs tracking-wider uppercase transition shadow-lg">
           ➕ Add Employee
@@ -261,8 +228,8 @@
     <section id="sec-payhistory" class="hidden space-y-4">
       <div class="gold-glass p-4 rounded-xl border border-emerald-500/30 flex justify-between items-center">
         <div>
-          <h2 class="text-base font-bold text-emerald-400">📜 All Payment Transaction History</h2>
-          <p class="text-xs text-slate-400">Complete log of all payment deposits recorded across all staff members.</p>
+          <h2 class="text-base font-bold text-emerald-400">📜 All Payment Transaction History (From Sheet)</h2>
+          <p class="text-xs text-slate-400">Live payment log synced directly from Google Sheet's 'Transection History' tab.</p>
         </div>
       </div>
       <div id="payHistoryGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
@@ -270,12 +237,45 @@
 
     <!-- RENEWAL REVIEW TAB -->
     <section id="sec-renewal" class="hidden space-y-4">
-      <div class="gold-glass p-4 rounded-xl border border-yellow-500/30 flex justify-between items-center">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 gold-glass p-4 rounded-xl border border-yellow-500/30">
         <div>
           <h2 class="text-base font-bold text-yellow-400">🔒 QID Renewal Review Queue (Password Protected)</h2>
-          <p class="text-xs text-slate-400">Approve extensions or manage pending QID renewals here.</p>
+          <p class="text-xs text-slate-400">Review pending QID renewals & approved history synced directly from Google Sheet.</p>
+        </div>
+        <button onclick="downloadRenewalPDF()" class="px-3 py-2 bg-gradient-to-r from-gold-600 to-gold-500 text-dark-950 font-bold text-xs rounded-xl shadow whitespace-nowrap flex items-center gap-1">
+          📥 Download Renewal Report (PDF)
+        </button>
+      </div>
+
+      <!-- COUNTER SUMMARY -->
+      <div class="grid grid-cols-2 gap-3">
+        <div onclick="switchRenewalSubTab('pending')" class="cursor-pointer gold-glass p-3 rounded-xl border-l-4 border-yellow-500 hover:scale-[1.01] transition">
+          <div class="text-[11px] text-slate-400 uppercase font-semibold">⏳ Pending Renewals</div>
+          <div class="text-xl font-bold text-yellow-400 mt-0.5" id="ren-stat-pending">0</div>
+        </div>
+        <div onclick="switchRenewalSubTab('history')" class="cursor-pointer gold-glass p-3 rounded-xl border-l-4 border-emerald-500 hover:scale-[1.01] transition">
+          <div class="text-[11px] text-slate-400 uppercase font-semibold">✅ Approved / Completed History (Sheet)</div>
+          <div class="text-xl font-bold text-emerald-400 mt-0.5" id="ren-stat-history">0</div>
         </div>
       </div>
+
+      <!-- SUB TABS & FILTERS -->
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-dark-900/90 p-2 rounded-xl border border-slate-800">
+        <div class="flex items-center gap-2">
+          <button id="ren-subtab-pending" onclick="switchRenewalSubTab('pending')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition bg-gold-500 text-dark-950 shadow">
+            ⏳ Pending Renewals (<span id="ren-badge-pending">0</span>)
+          </button>
+          <button id="ren-subtab-history" onclick="switchRenewalSubTab('history')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white">
+            📜 Approved History (<span id="ren-badge-history">0</span>)
+          </button>
+        </div>
+        <div class="flex items-center gap-2 text-xs">
+          <span class="text-slate-400">Filter Date:</span>
+          <input type="date" id="ren-filter-date" onchange="renderRenewalList()" class="bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white text-xs">
+          <button onclick="document.getElementById('ren-filter-date').value='';renderRenewalList()" class="text-slate-400 hover:text-white text-[11px]">Clear</button>
+        </div>
+      </div>
+
       <div id="renewalQueueGrid" class="space-y-3"></div>
     </section>
   </main>
@@ -320,13 +320,8 @@
           <div><label class="text-blue-400 font-bold block mb-1">Coming Date</label><input type="date" id="m-input-coming" class="w-full bg-slate-950 border border-blue-600/50 rounded p-2 text-white"></div>
           <div><label class="text-slate-400 block mb-1">Note</label><textarea id="m-input-note" rows="2" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></textarea></div>
 
-          <!-- DOCUMENT LINKS SECTION -->
-          <div class="space-y-2 pt-3 border-t border-slate-800">
-            <div id="docLinksContainer" class="space-y-1 pt-1 max-h-32 overflow-y-auto"></div>
-          </div>
-
           <div class="space-y-2 pt-2 border-t border-slate-800">
-            <button onclick="saveProfileChanges()" class="w-full py-2 bg-gradient-to-r from-gold-600 to-gold-500 text-dark-950 font-bold rounded shadow">💾 Save Changes</button>
+            <button onclick="saveProfileChanges()" class="w-full py-2 bg-gradient-to-r from-gold-600 to-gold-500 text-dark-950 font-bold rounded shadow">💾 Save Changes to Sheet</button>
             <button onclick="flagForRenewalWithPassword()" id="btn-toggle-review" class="w-full py-1.5 bg-yellow-950/80 text-yellow-300 font-bold rounded border border-yellow-700/50">🔒 Flag for Renewal (Requires Password)</button>
             <button onclick="deleteEmployeeWithPassword()" class="w-full py-1.5 bg-red-950 text-red-400 font-bold rounded border border-red-700/60 hover:bg-red-900 transition">❌ Cancel / Delete Employee (Password: SFBD)</button>
           </div>
@@ -347,11 +342,11 @@
             <span class="font-bold text-gold-400 block">➕ Deposit Payment</span>
             <input type="number" id="pay-amount" placeholder="Amount (QAR)" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
             <input type="text" id="pay-note" placeholder="Transaction Note" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
-            <button onclick="addPaymentTransaction()" class="w-full py-1.5 bg-emerald-600 text-white font-bold rounded transition">💰 Add & Save Payment</button>
+            <button onclick="addPaymentTransaction()" class="w-full py-1.5 bg-emerald-600 text-white font-bold rounded transition">💰 Add & Save to Sheet</button>
           </div>
           <button onclick="clearAllPaymentWithPassword()" class="w-full py-1.5 bg-red-950/80 text-red-300 font-bold rounded border border-red-800/60">🔒 Clear Payment (Reset 0 - Password: SFBD)</button>
           <div>
-            <span class="font-bold text-slate-400 block mb-1">Transaction History Logs</span>
+            <span class="font-bold text-slate-400 block mb-1">Transaction History Logs (Synced from Sheet)</span>
             <div id="m-pay-history" class="max-h-24 overflow-y-auto space-y-1 pr-1"></div>
           </div>
         </div>
@@ -391,7 +386,7 @@
         <div><label class="text-blue-400 font-bold block mb-1">Coming Date</label><input type="date" id="add-coming" class="w-full bg-slate-950 border border-blue-600/50 rounded p-2 text-white"></div>
         <div><label class="text-slate-400 block mb-1">Note</label><textarea id="add-note" rows="2" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></textarea></div>
         <div><label class="text-slate-400 block mb-1">Total Agreed Fee (QAR)</label><input type="number" id="add-total" value="0" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
-        <button type="submit" class="w-full py-2.5 bg-gradient-to-r from-gold-600 to-gold-500 text-dark-950 font-bold rounded shadow">Create Record</button>
+        <button type="submit" class="w-full py-2.5 bg-gradient-to-r from-gold-600 to-gold-500 text-dark-950 font-bold rounded shadow">Create Record in Sheet</button>
       </form>
     </div>
   </div>
@@ -406,6 +401,9 @@
   let activeFilter = 'all';
   let selectedCompanyFilter = 'ALL';
   let activeEmployeeQid = null;
+  let transactionHistoryCloud = [];
+  let renewalSubTab = 'pending';
+  let completedRenewals = [];
 
   window.addEventListener('DOMContentLoaded', async () => {
     const savedKey = localStorage.getItem('ga_active_license');
@@ -419,20 +417,12 @@
 
         if (data.status === "SUCCESS") {
           API_URL = data.scriptUrl;
-          localStorage.setItem('ga_folder_id', data.folderId || '');
           document.getElementById('licenseLoginModal').classList.add('hidden');
           updatePortalHeader(data.company || savedCompanyName);
-          
-          const expDate = new Date(data.expiry);
-          const now = new Date();
-          now.setHours(0, 0, 0, 0);
-          const daysLeft = Math.ceil((expDate - now) / (1000 * 60 * 60 * 24));
-          updateLicenseCounterDisplay(daysLeft, data.expiry);
-          
           fetchSheetData();
           return;
         } else {
-          alert("Access Denied: " + (data.message || "License is inactive or blocked."));
+          alert("Access Denied: License is inactive or blocked.");
           localStorage.clear();
         }
       } catch (e) {
@@ -458,21 +448,13 @@
 
       if (data.status === "SUCCESS") {
         localStorage.setItem('ga_active_license', key);
-        localStorage.setItem('ga_license_expiry', data.expiry);
         localStorage.setItem('ga_script_url', data.scriptUrl);
         localStorage.setItem('ga_company_name', data.company || "MANAGEMENT PORTAL");
-        localStorage.setItem('ga_folder_id', data.folderId || '');
         
         API_URL = data.scriptUrl;
-        
-        const expDate = new Date(data.expiry);
-        const now = new Date();
-        now.setHours(0,0,0,0);
-        const daysLeft = Math.ceil((expDate - now) / (1000 * 60 * 60 * 24));
 
         document.getElementById('licenseLoginModal').classList.add('hidden');
         updatePortalHeader(data.company || "MANAGEMENT PORTAL");
-        updateLicenseCounterDisplay(daysLeft, data.expiry);
         alert(`Welcome ${data.client}! License unlocked successfully (${data.plan}).`);
         fetchSheetData();
       } else {
@@ -480,7 +462,7 @@
         updateSyncStatus("License Invalid", "bg-red-400");
       }
     } catch (e) {
-      alert("Verification failed. Please check your internet connection or URL.");
+      alert("Verification failed. Please check internet connection.");
     }
   }
 
@@ -488,20 +470,6 @@
     document.getElementById('headerCompanyName').textContent = compName;
     const initials = compName.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
     document.getElementById('headerLogoText').textContent = initials || 'MP';
-  }
-
-  function updateLicenseCounterDisplay(daysLeft, expiryDateStr) {
-    const badge = document.getElementById('licenseExpiryBadge');
-    if (daysLeft <= 0) {
-      badge.className = "inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-red-950 text-red-300 border border-red-600/50 font-bold mono";
-      badge.innerHTML = `🚨 License Expired! (${cleanDateStr(expiryDateStr)})`;
-    } else if (daysLeft <= 30) {
-      badge.className = "inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-yellow-950 text-yellow-300 border border-yellow-600/50 font-bold mono";
-      badge.innerHTML = `⚠️ License: ${daysLeft} Days Left (${cleanDateStr(expiryDateStr)})`;
-    } else {
-      badge.className = "inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-amber-950 text-amber-300 border border-amber-600/50 font-bold mono";
-      badge.innerHTML = `🔑 License: ${daysLeft} Days Left (${cleanDateStr(expiryDateStr)})`;
-    }
   }
 
   function logoutLicense() {
@@ -513,28 +481,41 @@
 
   async function fetchSheetData() {
     if (!API_URL) return;
-    updateSyncStatus("Syncing...", "bg-amber-500");
+    updateSyncStatus("Fetching Sheet Data...", "bg-amber-500");
     try {
       const res = await fetch(API_URL);
       if (res.ok) {
         const raw = await res.json();
+        
+        let rawEmp = [];
         if (Array.isArray(raw)) {
-          employees = raw.map(item => ({
-            ...item,
-            dob: cleanDateStr(item.dob),
-            rpIssueDate: cleanDateStr(item.rpIssueDate),
-            rpExDate: cleanDateStr(item.rpExDate),
-            commingDate: cleanDateStr(item.commingDate),
-            inRenewalReview: (item.qidStatus === 'inReview' || item.renewStatus === 'inReview')
-          }));
-          updateCompanyListFromData();
-          updateSyncStatus("Connected", "bg-emerald-400");
-          renderApp();
-          if (activeEmployeeQid) {
-            openEmployeeModal(activeEmployeeQid, true);
+          rawEmp = raw;
+        } else if (raw && typeof raw === 'object') {
+          rawEmp = raw.employees || [];
+          if (raw.transactions && Array.isArray(raw.transactions)) {
+            transactionHistoryCloud = raw.transactions;
           }
-          return;
+          if (raw.renewHistory && Array.isArray(raw.renewHistory)) {
+            completedRenewals = raw.renewHistory;
+          }
         }
+
+        employees = rawEmp.map(item => ({
+          ...item,
+          dob: cleanDateStr(item.dob),
+          rpIssueDate: cleanDateStr(item.rpIssueDate),
+          rpExDate: cleanDateStr(item.rpExDate),
+          commingDate: cleanDateStr(item.commingDate),
+          inRenewalReview: (item.qidStatus === 'inReview' || item.renewStatus === 'inReview')
+        }));
+
+        updateCompanyListFromData();
+        updateSyncStatus("100% Online Sync", "bg-emerald-400");
+        renderApp();
+        if (activeEmployeeQid) {
+          openEmployeeModal(activeEmployeeQid, true);
+        }
+        return;
       }
       throw new Error("Invalid response");
     } catch (e) {
@@ -608,7 +589,7 @@
 
   async function postToSheet(action, payload) {
     if (!API_URL) return;
-    updateSyncStatus("Saving...", "bg-amber-500");
+    updateSyncStatus("Saving to Sheet...", "bg-amber-500");
     try {
       await fetch(API_URL, {
         method: 'POST',
@@ -616,117 +597,11 @@
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: action, ...payload })
       });
-      updateSyncStatus("Connected", "bg-emerald-400");
-      applyInstantLocalUpdate(action, payload);
-      setTimeout(fetchSheetData, 1000);
+      updateSyncStatus("100% Online Sync", "bg-emerald-400");
+      setTimeout(fetchSheetData, 1200);
     } catch (e) {
       updateSyncStatus("Save Failed", "bg-red-400");
-      alert("Failed to save data: " + e.message);
-    }
-  }
-
-  async function uploadEmployeeDoc() {
-    const fileInput = document.getElementById('docFileInput');
-    const docType = document.getElementById('docTypeSelect').value;
-    const folderId = localStorage.getItem('ga_folder_id');
-
-    if (!fileInput.files.length) return alert("Please select or capture an image/file first!");
-    if (!folderId) return alert("Drive Folder ID missing in license storage!");
-
-    const file = fileInput.files[0];
-    const reader = new FileReader();
-
-    updateSyncStatus("Uploading Document...", "bg-amber-500");
-
-    reader.onload = async function(e) {
-      const payload = {
-        action: "uploadDocument",
-        qid: activeEmployeeQid,
-        folderId: folderId,
-        docType: docType,
-        fileName: file.name,
-        mimeType: file.type,
-        fileData: e.target.result
-      };
-
-      try {
-        await fetch(API_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(payload)
-        });
-
-        updateSyncStatus("Connected", "bg-emerald-400");
-        alert("Document/Image uploaded successfully!");
-        fileInput.value = '';
-        setTimeout(fetchSheetData, 2000);
-      } catch (err) {
-        alert("Upload failed: " + err.message);
-        updateSyncStatus("Error", "bg-red-400");
-      }
-    };
-
-    reader.readAsDataURL(file);
-  }
-
-  function renderDocumentLinks(emp) {
-    const container = document.getElementById('docLinksContainer');
-    let linksHtml = '';
-
-    if (emp.qidDocUrl) {
-      linksHtml += `
-        <div class="flex items-center justify-between bg-slate-950 p-1.5 rounded border border-slate-800 text-[11px]">
-          <div><strong class="text-gold-400">QID Card (Col R)</strong></div>
-          <a href="${emp.qidDocUrl}" target="_blank" class="px-2 py-0.5 rounded bg-blue-600 hover:bg-blue-500 text-white font-bold text-[10px]">👁️ View QID</a>
-        </div>`;
-    }
-
-    if (emp.passportDocUrl) {
-      linksHtml += `
-        <div class="flex items-center justify-between bg-slate-950 p-1.5 rounded border border-slate-800 text-[11px]">
-          <div><strong class="text-gold-400">Passport (Col S)</strong></div>
-          <a href="${emp.passportDocUrl}" target="_blank" class="px-2 py-0.5 rounded bg-blue-600 hover:bg-blue-500 text-white font-bold text-[10px]">👁️ View Passport</a>
-        </div>`;
-    }
-
-    if (emp.documents && emp.documents.length) {
-      emp.documents.forEach(doc => {
-        linksHtml += `
-          <div class="flex items-center justify-between bg-slate-950 p-1.5 rounded border border-slate-800 text-[11px]">
-            <div><strong class="text-gold-400">${doc.type}</strong>: <span class="text-slate-300">${doc.name}</span></div>
-            <a href="${doc.url}" target="_blank" class="px-2 py-0.5 rounded bg-blue-600 hover:bg-blue-500 text-white font-bold text-[10px]">👁️ View Document</a>
-          </div>`;
-      });
-    }
-
-    container.innerHTML = linksHtml || `<span class="text-slate-500 italic text-[11px]">No documents uploaded yet.</span>`;
-  }
-
-  function applyInstantLocalUpdate(action, payload) {
-    if (action === 'addOrUpdate' && payload.employee) {
-      const empData = payload.employee;
-      let index = employees.findIndex(e => String(e.qid) === String(empData.qid));
-      
-      if (payload.transactionLog) {
-        if (!empData.history) empData.history = [];
-        empData.history.unshift(payload.transactionLog);
-      }
-
-      if (index >= 0) {
-        employees[index] = { ...employees[index], ...empData };
-      } else {
-        employees.push(empData);
-      }
-
-      renderApp();
-      if (activeEmployeeQid === String(empData.qid)) {
-        openEmployeeModal(empData.qid, true);
-      }
-    } else if (action === 'delete' && payload.qid) {
-      employees = employees.filter(e => String(e.qid) !== String(payload.qid));
-      renderApp();
-      closeModal('employeeModal');
+      alert("Failed to save data to sheet: " + e.message);
     }
   }
 
@@ -789,8 +664,7 @@
     const renewalCount = employees.filter(e => e.inRenewalReview).length;
     const dueTotal = employees.reduce((sum, e) => sum + (e.due || 0), 0);
 
-    let totalTxCount = 0;
-    employees.forEach(e => { if (e.history) totalTxCount += e.history.length; });
+    let totalTxCount = transactionHistoryCloud.length;
 
     document.getElementById('stat-total').textContent = total;
     document.getElementById('stat-expired').textContent = expired;
@@ -921,34 +795,30 @@
   }
 
   function renderPaymentHistoryList() {
-    let allTransactions = [];
-    employees.forEach(e => {
-      if (e.history && e.history.length > 0) {
-        e.history.forEach(h => {
-          allTransactions.push({ ...h, empName: e.name, empQid: e.qid, company: e.company });
-        });
-      }
-    });
+    let allTransactions = [...transactionHistoryCloud];
 
     allTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     const grid = document.getElementById('payHistoryGrid');
-    grid.innerHTML = allTransactions.length ? allTransactions.map(tx => `
-      <div class="gold-glass p-4 rounded-xl border-l-4 border-emerald-500 flex flex-col justify-between space-y-2">
-        <div class="flex justify-between items-start">
-          <div>
-            <h4 class="font-bold text-white text-sm cursor-pointer hover:text-gold-300" onclick="openEmployeeModal('${tx.empQid}')">${tx.empName}</h4>
-            <span class="mono text-[11px] text-gold-400">QID: ${tx.empQid}</span>
+    grid.innerHTML = allTransactions.length ? allTransactions.map(tx => {
+      const emp = employees.find(e => String(e.qid) === String(tx.empQid || tx.qid));
+      return `
+        <div class="gold-glass p-4 rounded-xl border-l-4 border-emerald-500 flex flex-col justify-between space-y-2">
+          <div class="flex justify-between items-start">
+            <div>
+              <h4 class="font-bold text-white text-sm cursor-pointer hover:text-gold-300" onclick="openEmployeeModal('${tx.empQid || tx.qid}')">${emp ? emp.name : 'Staff'}</h4>
+              <span class="mono text-[11px] text-gold-400">QID: ${tx.empQid || tx.qid}</span>
+            </div>
+            <span class="px-2 py-0.5 rounded text-xs font-bold bg-emerald-950 text-emerald-400 border border-emerald-700/50 mono">+${tx.amount} QAR</span>
           </div>
-          <span class="px-2 py-0.5 rounded text-xs font-bold bg-emerald-950 text-emerald-400 border border-emerald-700/50 mono">+${tx.amount} QAR</span>
+          <div class="text-xs text-slate-300 space-y-0.5">
+            <div><span>Note:</span> <strong class="text-slate-100">${tx.note || 'Deposit'}</strong></div>
+            <div><span>Company:</span> <span class="text-slate-400">${emp ? emp.company : '-'}</span></div>
+            <div class="text-[11px] text-slate-500 pt-1">Date: ${tx.date}</div>
+          </div>
         </div>
-        <div class="text-xs text-slate-300 space-y-0.5">
-          <div><span>Note:</span> <strong class="text-slate-100">${tx.note || 'Deposit'}</strong></div>
-          <div><span>Company:</span> <span class="text-slate-400">${tx.company || '-'}</span></div>
-          <div class="text-[11px] text-slate-500 pt-1">Date: ${tx.date}</div>
-        </div>
-      </div>
-    `).join('') : `<div class="col-span-full gold-glass p-8 text-center text-slate-400">No payment transaction history found.</div>`;
+      `;
+    }).join('') : `<div class="col-span-full gold-glass p-8 text-center text-slate-400">No payment transaction history found in Sheet.</div>`;
   }
 
   function downloadCompanyPDF() {
@@ -1013,18 +883,171 @@
     html2pdf().from(htmlContent).save();
   }
 
+  function switchRenewalSubTab(sub) {
+    renewalSubTab = sub;
+    const btnPending = document.getElementById('ren-subtab-pending');
+    const btnHistory = document.getElementById('ren-subtab-history');
+
+    if (sub === 'pending') {
+      btnPending.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition bg-gold-500 text-dark-950 shadow";
+      btnHistory.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white";
+    } else {
+      btnHistory.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition bg-emerald-600 text-white shadow";
+      btnPending.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white";
+    }
+    renderRenewalList();
+  }
+
   function renderRenewalList() {
-    const queue = employees.filter(e => e.inRenewalReview);
+    const pendingList = employees.filter(e => e.inRenewalReview);
+    const filterDate = document.getElementById('ren-filter-date') ? document.getElementById('ren-filter-date').value : '';
+
+    document.getElementById('ren-stat-pending').textContent = pendingList.length;
+    document.getElementById('ren-stat-history').textContent = completedRenewals.length;
+    document.getElementById('ren-badge-pending').textContent = pendingList.length;
+    document.getElementById('ren-badge-history').textContent = completedRenewals.length;
+
     const grid = document.getElementById('renewalQueueGrid');
-    grid.innerHTML = queue.length ? queue.map(e => `
-      <div class="gold-glass p-4 rounded-xl border-l-4 border-yellow-500 flex justify-between items-center">
-        <div>
-          <h4 class="font-bold text-white text-sm cursor-pointer hover:text-gold-300" onclick="openEmployeeModal('${e.qid}')">${e.name} (QID: ${e.qid})</h4>
-          <p class="text-xs text-slate-400">RP Expire: ${e.rpExDate} • Company: ${e.company}</p>
+
+    if (renewalSubTab === 'pending') {
+      let filteredPending = pendingList;
+      if (filterDate) {
+        filteredPending = pendingList.filter(e => e.renewalRequestedDate === filterDate || e.rpExDate === filterDate);
+      }
+
+      grid.innerHTML = filteredPending.length ? filteredPending.map(e => {
+        const days = getDaysRemaining(e.rpExDate);
+        const reqDate = e.renewalRequestedDate || 'Not recorded';
+        const paidAmt = e.pay || 0;
+        const dueAmt = e.due || 0;
+
+        return `
+          <div class="gold-glass p-4 rounded-xl border-l-4 border-yellow-500 space-y-3 shadow-lg">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <div>
+                <div class="flex items-center gap-2">
+                  <h4 class="font-bold text-white text-base cursor-pointer hover:text-gold-300" onclick="openEmployeeModal('${e.qid}')">${e.name}</h4>
+                  <span class="mono text-xs text-gold-400 font-semibold bg-slate-900 px-2 py-0.5 rounded border border-slate-700">QID: ${e.qid}</span>
+                </div>
+                <p class="text-xs text-slate-400 mt-1">Company: <strong class="text-slate-200">${e.company || '-'}</strong> • 📅 Flagged Date: <strong class="text-yellow-300">${reqDate}</strong></p>
+              </div>
+
+              <div class="flex items-center gap-2 flex-wrap">
+                <button onclick="approveRenewalWithPassword('${e.qid}')" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-lg transition shadow flex items-center gap-1">
+                  ✅ Approve (+1 Yr)
+                </button>
+                <button onclick="cancelRenewalWithPassword('${e.qid}')" class="px-3 py-2 bg-red-950 hover:bg-red-900 text-red-300 border border-red-700/60 font-bold text-xs rounded-lg transition">
+                  ❌ Cancel / Reject
+                </button>
+              </div>
+            </div>
+
+            <!-- HIGHLIGHTED INFO GRID -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs pt-1 border-t border-slate-800/80">
+              <div class="bg-slate-950/90 p-2 rounded-lg border border-yellow-500/40">
+                <span class="text-slate-400 block text-[10px] font-semibold uppercase">⏰ RP Expire Status</span>
+                <div class="flex items-center justify-between mt-1">
+                  <strong class="text-yellow-300 mono font-bold">${e.rpExDate || '-'}</strong>
+                  ${getStatusBadge(days)}
+                </div>
+              </div>
+
+              <div class="bg-slate-950/90 p-2 rounded-lg border border-emerald-500/40">
+                <span class="text-slate-400 block text-[10px] font-semibold uppercase">💰 Total Paid (Koto Taka Diche)</span>
+                <div class="text-base font-black text-emerald-400 mono mt-0.5">${paidAmt.toLocaleString()} QAR</div>
+              </div>
+
+              <div class="bg-slate-950/90 p-2 rounded-lg border ${dueAmt > 0 ? 'border-red-500/40' : 'border-slate-700'}">
+                <span class="text-slate-400 block text-[10px] font-semibold uppercase">🔴 Balance Due</span>
+                <div class="text-base font-black ${dueAmt > 0 ? 'text-red-400' : 'text-emerald-400'} mono mt-0.5">${dueAmt.toLocaleString()} QAR</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('') : `<div class="gold-glass p-8 text-center text-slate-400">No pending renewals matching criteria.</div>`;
+
+    } else {
+      let filteredHistory = completedRenewals;
+      if (filterDate) {
+        filteredHistory = completedRenewals.filter(h => h.doneDate === filterDate || h.rpExDate === filterDate);
+      }
+
+      grid.innerHTML = filteredHistory.length ? filteredHistory.map(h => `
+        <div class="gold-glass p-4 rounded-xl border-l-4 border-emerald-500 space-y-2">
+          <div class="flex justify-between items-start">
+            <div>
+              <h4 class="font-bold text-white text-sm">${h.name} (QID: ${h.qid})</h4>
+              <p class="text-xs text-slate-400">Company: ${h.company || '-'} • Approved Date: <strong class="text-emerald-400">${h.doneDate}</strong></p>
+            </div>
+            <span class="px-2.5 py-1 rounded bg-emerald-950 text-emerald-400 border border-emerald-700/50 text-xs font-bold">✅ Extended to: ${h.rpExDate}</span>
+          </div>
+          <div class="text-xs text-slate-300 flex justify-between bg-slate-950 p-2 rounded border border-slate-800">
+            <span>Paid: <strong class="text-emerald-400 mono">${(h.pay || 0)} QAR</strong></span>
+            <span>Due: <strong class="text-red-400 mono">${(h.due || 0)} QAR</strong></span>
+          </div>
         </div>
-        <button onclick="approveRenewalWithPassword('${e.qid}')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl">🔒 Approve Extension (+1 Yr)</button>
+      `).join('') : `<div class="gold-glass p-8 text-center text-slate-400">No approved renewal history found in Sheet.</div>`;
+    }
+  }
+
+  function downloadRenewalPDF() {
+    const pendingList = employees.filter(e => e.inRenewalReview);
+    const listToPrint = renewalSubTab === 'pending' ? pendingList : completedRenewals;
+
+    if (!listToPrint.length) return alert("No renewal data available to download!");
+
+    const currentPortalName = localStorage.getItem('ga_company_name') || 'MANAGEMENT PORTAL';
+    const reportTitle = renewalSubTab === 'pending' ? 'Pending Renewal Queue Report' : 'Approved Renewal History Report';
+
+    let htmlContent = `
+      <div style="padding: 20px; font-family: Arial, sans-serif; color: #000; background: #fff;">
+        <h2 style="text-align: center; color: #d4af37; margin-bottom: 5px;">${currentPortalName}</h2>
+        <h3 style="text-align: center; margin-top: 0; font-size: 14px;">${reportTitle}</h3>
+        <p style="font-size: 11px; margin-bottom: 10px;"><strong>Total Records:</strong> ${listToPrint.length} | <strong>Generated Date:</strong> ${new Date().toISOString().split('T')[0]}</p>
+        <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 10px;">
+          <thead>
+            <tr style="background: #f1f5f9;">
+              <th style="border: 1px solid #cbd5e1; padding: 6px;">QID</th>
+              <th style="border: 1px solid #cbd5e1; padding: 6px;">Name</th>
+              <th style="border: 1px solid #cbd5e1; padding: 6px;">Company</th>
+              <th style="border: 1px solid #cbd5e1; padding: 6px;">RP Expire</th>
+              <th style="border: 1px solid #cbd5e1; padding: 6px;">Paid (QAR)</th>
+              <th style="border: 1px solid #cbd5e1; padding: 6px;">Due (QAR)</th>
+              <th style="border: 1px solid #cbd5e1; padding: 6px;">Flagged/Approved Date</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
+
+    listToPrint.forEach(item => {
+      htmlContent += `
+        <tr>
+          <td style="border: 1px solid #cbd5e1; padding: 6px;">${item.qid}</td>
+          <td style="border: 1px solid #cbd5e1; padding: 6px;">${item.name}</td>
+          <td style="border: 1px solid #cbd5e1; padding: 6px;">${item.company || '-'}</td>
+          <td style="border: 1px solid #cbd5e1; padding: 6px;">${item.rpExDate || '-'}</td>
+          <td style="border: 1px solid #cbd5e1; padding: 6px;">${item.pay || 0}</td>
+          <td style="border: 1px solid #cbd5e1; padding: 6px;">${item.due || 0}</td>
+          <td style="border: 1px solid #cbd5e1; padding: 6px;">${item.renewalRequestedDate || item.doneDate || '-'}</td>
+        </tr>
+      `;
+    });
+
+    htmlContent += `
+          </tbody>
+        </table>
       </div>
-    `).join('') : `<div class="gold-glass p-8 text-center text-slate-400">No pending renewals in review queue.</div>`;
+    `;
+
+    const opt = {
+      margin:       0.5,
+      filename:     `Renewal_Report_${renewalSubTab}_${new Date().toISOString().split('T')[0]}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2 },
+      jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
+    };
+
+    html2pdf().from(htmlContent).save();
   }
 
   function switchMainTab(tabName) {
@@ -1088,7 +1111,6 @@
     document.getElementById('m-ledger-due').textContent = (emp.due || 0) + ' QAR';
 
     renderHistoryLogs(emp);
-    renderDocumentLinks(emp);
     if (!isLiveRefresh) {
       document.getElementById('employeeModal').classList.remove('hidden');
     }
@@ -1101,7 +1123,7 @@
         <div><strong>${h.note}</strong> <br><span class="text-slate-500">${h.date}</span></div>
         <span class="font-bold text-emerald-400">+${h.amount} QAR</span>
       </div>
-    `).join('') : `<div class="text-slate-500 italic">No history logs found.</div>`;
+    `).join('') : `<div class="text-slate-500 italic">No history logs found in Sheet.</div>`;
   }
 
   function saveProfileChanges() {
@@ -1125,10 +1147,14 @@
   function flagForRenewalWithPassword() {
     if (prompt("Enter Password to Flag for Renewal:") === "SFBD") {
       const emp = employees.find(e => String(e.qid) === String(activeEmployeeQid));
+      if (!emp) return;
+      const todayStr = new Date().toISOString().split('T')[0];
       emp.qidStatus = 'inReview';
       emp.renewStatus = 'inReview';
       emp.inRenewalReview = true;
+      emp.renewalRequestedDate = todayStr;
       postToSheet('addOrUpdate', { employee: emp });
+      alert("Flagged for Renewal successfully!");
     } else alert("Wrong Password!");
   }
 
@@ -1137,7 +1163,7 @@
       const qid = activeEmployeeQid;
       if (!qid) return;
       postToSheet('delete', { qid: qid });
-      alert("Employee record cancelled and deleted successfully!");
+      alert("Employee record deleted from Sheet successfully!");
     } else {
       alert("Wrong Password! Access Denied.");
     }
@@ -1146,6 +1172,7 @@
   function approveRenewalWithPassword(qid) {
     if (prompt("Enter Password to Approve Extension:") === "SFBD") {
       const emp = employees.find(e => String(e.qid) === String(qid));
+      if (!emp) return;
       let curr = emp.rpExDate ? new Date(emp.rpExDate) : new Date();
       if (isNaN(curr.getTime())) curr = new Date();
       curr.setFullYear(curr.getFullYear() + 1);
@@ -1153,12 +1180,37 @@
       const year = curr.getFullYear();
       const month = String(curr.getMonth() + 1).padStart(2, '0');
       const day = String(curr.getDate()).padStart(2, '0');
-      
+      const todayStr = new Date().toISOString().split('T')[0];
+
       emp.rpExDate = `${year}-${month}-${day}`;
       emp.qidStatus = '';
       emp.renewStatus = '';
       emp.inRenewalReview = false;
+
+      const renewRecord = {
+        qid: emp.qid,
+        name: emp.name,
+        company: emp.company,
+        rpExDate: emp.rpExDate,
+        pay: emp.pay,
+        due: emp.due,
+        doneDate: todayStr
+      };
+
+      postToSheet('addRenewHistory', { ...renewRecord, employee: emp });
+      alert(`Extension approved for ${emp.name}! New RP Expire: ${emp.rpExDate}`);
+    } else alert("Wrong Password!");
+  }
+
+  function cancelRenewalWithPassword(qid) {
+    if (prompt("Enter Password to Cancel/Reject Renewal:") === "SFBD") {
+      const emp = employees.find(e => String(e.qid) === String(qid));
+      if (!emp) return;
+      emp.qidStatus = '';
+      emp.renewStatus = '';
+      emp.inRenewalReview = false;
       postToSheet('addOrUpdate', { employee: emp });
+      alert(`Renewal review cancelled for ${emp.name}.`);
     } else alert("Wrong Password!");
   }
 
@@ -1170,20 +1222,20 @@
 
     emp.pay += amt;
     emp.due = Math.max(0, emp.total - emp.pay);
-    const tx = { date: new Date().toISOString().split('T')[0], amount: amt, note: note };
+    const tx = { qid: emp.qid, date: new Date().toISOString().split('T')[0], amount: amt, note: note };
 
     document.getElementById('pay-amount').value = '';
     document.getElementById('pay-note').value = '';
 
-    postToSheet('addOrUpdate', { employee: emp, transactionLog: tx });
+    postToSheet('addTransaction', { qid: emp.qid, date: tx.date, amount: tx.amount, note: tx.note, employee: emp });
   }
 
   function clearAllPaymentWithPassword() {
     if (prompt("Enter Password to Reset Ledger:") === "SFBD") {
       const emp = employees.find(e => String(e.qid) === String(activeEmployeeQid));
       emp.total = 0; emp.pay = 0; emp.due = 0;
-      const tx = { date: new Date().toISOString().split('T')[0], amount: 0, note: 'Reset (Password: SFBD)' };
-      postToSheet('addOrUpdate', { employee: emp, transactionLog: tx });
+      const tx = { qid: emp.qid, date: new Date().toISOString().split('T')[0], amount: 0, note: 'Reset (Password: SFBD)' };
+      postToSheet('addTransaction', { qid: emp.qid, date: tx.date, amount: 0, note: 'Reset (Password: SFBD)', employee: emp });
     } else alert("Access Denied.");
   }
 

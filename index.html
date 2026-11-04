@@ -300,23 +300,8 @@
           <div><label class="text-blue-400 font-bold block mb-1">Coming Date</label><input type="date" id="m-input-coming" class="w-full bg-slate-950 border border-blue-600/50 rounded p-2 text-white"></div>
           <div><label class="text-slate-400 block mb-1">Note</label><textarea id="m-input-note" rows="2" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></textarea></div>
 
-          <!-- DOCUMENT UPLOADER & CAMERA SECTION -->
+          <!-- DOCUMENT LINKS SECTION -->
           <div class="space-y-2 pt-3 border-t border-slate-800">
-            <h5 class="font-bold text-yellow-400 uppercase">📁 Upload Document / Camera Image</h5>
-            <div class="grid grid-cols-2 gap-2">
-              <select id="docTypeSelect" class="bg-slate-950 border border-slate-700 rounded p-1.5 text-white font-semibold">
-                <option value="QID Card">QID Card (Col R)</option>
-                <option value="Passport">Passport (Col S)</option>
-                <option value="Contract">Contract</option>
-                <option value="Agreement">Agreement</option>
-                <option value="Other Document">Other Document</option>
-              </select>
-              <!-- Camera capture & File choose input -->
-              <input type="file" id="docFileInput" accept="image/*,application/pdf" capture="environment" class="bg-slate-950 border border-slate-700 rounded p-1 text-[10px] text-slate-300">
-            </div>
-            <button onclick="uploadEmployeeDoc()" class="w-full py-2 bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-500 hover:to-yellow-400 text-dark-950 font-bold rounded text-xs transition shadow flex items-center justify-center gap-1">
-              📷 Capture / Upload Document
-            </button>
             <div id="docLinksContainer" class="space-y-1 pt-1 max-h-32 overflow-y-auto"></div>
           </div>
 

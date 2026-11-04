@@ -300,9 +300,9 @@
           <div><label class="text-blue-400 font-bold block mb-1">Coming Date</label><input type="date" id="m-input-coming" class="w-full bg-slate-950 border border-blue-600/50 rounded p-2 text-white"></div>
           <div><label class="text-slate-400 block mb-1">Note</label><textarea id="m-input-note" rows="2" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></textarea></div>
 
-          <!-- DOCUMENT UPLOADER & CAMERA SECTION (Same System as Reference App) -->
+          <!-- DOCUMENT UPLOADER & CAMERA SECTION -->
           <div class="space-y-2 pt-3 border-t border-slate-800">
-            <h5 class="font-bold text-yellow-400 uppercase">📁 Upload Document / Camera Image</h5>
+            <h5 class="font-bold text-yellow-400 uppercase">📁 Direct Document / Camera Upload</h5>
             <div class="grid grid-cols-2 gap-2">
               <select id="docTypeSelect" class="bg-slate-950 border border-slate-700 rounded p-1.5 text-white font-semibold">
                 <option value="QID Card">QID Card (Col R)</option>
@@ -600,26 +600,6 @@
     return String(val).split(' ')[0];
   }
 
-  async function postToSheet(action, payload) {
-    if (!API_URL) return;
-    updateSyncStatus("Saving...", "bg-amber-500");
-    try {
-      await fetch(API_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: action, ...payload })
-      });
-      updateSyncStatus("Connected", "bg-emerald-400");
-      applyInstantLocalUpdate(action, payload);
-      setTimeout(fetchSheetData, 1000);
-    } catch (e) {
-      updateSyncStatus("Save Failed", "bg-red-400");
-      alert("Failed to save data: " + e.message);
-    }
-  }
-
-  // Base64 File Reader function (Same as Good Dream Real Estate reference app)[cite: 10]
   function getBase64(file) {
     return new Promise((resolve, reject) => {
       if(!file) resolve("");
@@ -635,6 +615,7 @@
     const docType = document.getElementById('docTypeSelect').value;
     const folderId = localStorage.getItem('ga_folder_id') || "";
 
+    if (!activeEmployeeQid) return alert("Please select an employee profile first!");
     if (!fileInput.files.length) return alert("Please select or capture a file first!");
 
     const file = fileInput.files[0];
@@ -653,20 +634,51 @@
         fileData: base64Data
       };
 
-      await fetch(API_URL, {
+      const response = await fetch(API_URL, {
         method: 'POST',
-        mode: 'no-cors',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(payload)
       });
 
-      updateSyncStatus("Connected", "bg-emerald-400");
-      alert("✅ Upload request sent successfully! Checking sheet in 3 seconds...");
-      fileInput.value = '';
-      setTimeout(fetchSheetData, 3000);
+      const resData = await response.json();
+
+      if (resData.status === "SUCCESS") {
+        updateSyncStatus("Connected", "bg-emerald-400");
+        alert("✅ Upload Successful!\nFile Link created: " + resData.fileUrl);
+        fileInput.value = '';
+        fetchSheetData();
+      } else {
+        updateSyncStatus("Upload Error", "bg-red-400");
+        alert("❌ Upload Failed!\nReason: " + (resData.message || "Server Error in Google Apps Script"));
+      }
     } catch (err) {
-      alert("Upload failed: " + err.message);
-      updateSyncStatus("Error", "bg-red-400");
+      updateSyncStatus("Uploading...", "bg-amber-500");
+      alert("⚠️ Upload request sent! Checking sheet updates in 4 seconds...");
+      fileInput.value = '';
+      setTimeout(fetchSheetData, 4000);
+    }
+  }
+
+  async function postToSheet(action, payload) {
+    if (!API_URL) return;
+    updateSyncStatus("Saving...", "bg-amber-500");
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: action, ...payload })
+      });
+      const resData = await response.json();
+      if(resData.status === "SUCCESS") {
+        updateSyncStatus("Connected", "bg-emerald-400");
+        applyInstantLocalUpdate(action, payload);
+        setTimeout(fetchSheetData, 1500);
+      } else {
+        alert("❌ Save Failed!\nReason: " + (resData.message || "Spreadsheet update failed."));
+      }
+    } catch (e) {
+      applyInstantLocalUpdate(action, payload);
+      setTimeout(fetchSheetData, 2000);
     }
   }
 

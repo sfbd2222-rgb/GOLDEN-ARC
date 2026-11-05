@@ -350,7 +350,7 @@
           <div class="space-y-2 pt-2 border-t border-slate-800">
             <button onclick="saveProfileChanges()" class="w-full py-2 bg-gradient-to-r from-gold-600 to-gold-500 text-dark-950 font-bold rounded shadow">💾 Save Changes</button>
             <button onclick="flagForRenewalWithPassword()" id="btn-toggle-review" class="w-full py-1.5 bg-yellow-950/80 text-yellow-300 font-bold rounded border border-yellow-700/50">🔒 Flag for Renewal (Requires Password)</button>
-            <button onclick="deleteEmployeeWithPassword()" class="w-full py-1.5 bg-red-950 text-red-400 font-bold rounded border border-red-700/60 hover:bg-red-900 transition">❌ Cancel / Delete Employee (Password: SFBD)</button>
+            <button onclick="deleteEmployeeWithPassword()" class="w-full py-1.5 bg-red-950 text-red-400 font-bold rounded border border-red-700/60 hover:bg-red-900 transition">❌ Cancel / Delete Employee (Requires Password)</button>
           </div>
         </div>
 
@@ -371,7 +371,7 @@
             <input type="text" id="pay-note" placeholder="Transaction Note" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
             <button onclick="addPaymentTransaction()" class="w-full py-1.5 bg-emerald-600 text-white font-bold rounded transition">💰 Add & Save Payment</button>
           </div>
-          <button onclick="clearAllPaymentWithPassword()" class="w-full py-1.5 bg-red-950/80 text-red-300 font-bold rounded border border-red-800/60">🔒 Clear Payment (Reset 0 - Password: SFBD)</button>
+          <button onclick="clearAllPaymentWithPassword()" class="w-full py-1.5 bg-red-950/80 text-red-300 font-bold rounded border border-red-800/60">🔒 Clear Payment (Reset 0 - Requires Password)</button>
           <div>
             <span class="font-bold text-slate-400 block mb-1">Transaction History Logs</span>
             <div id="m-pay-history" class="max-h-24 overflow-y-auto space-y-1 pr-1"></div>
@@ -692,7 +692,7 @@
     else comingBadge.classList.add('hidden');
 
     const dueBadge = document.getElementById('due-badge');
-    if (dueCount > 0) { dueBadge.textContent = dueCount; dueBadge.classList.add('hidden'); }
+    if (dueCount > 0) { dueBadge.textContent = dueCount; dueBadge.classList.remove('hidden'); }
     else dueBadge.classList.add('hidden');
 
     const payBadge = document.getElementById('payhistory-badge');
@@ -1248,7 +1248,7 @@
     if (prompt("Enter Password to Reset Ledger:") === "SFBD") {
       const emp = employees.find(e => String(e.qid) === String(activeEmployeeQid));
       emp.total = 0; emp.pay = 0; emp.due = 0;
-      postToSheet('addTransaction', { qid: emp.qid, date: new Date().toISOString().split('T')[0], amount: 0, note: 'Reset (Password: SFBD)', employee: emp });
+      postToSheet('addTransaction', { qid: emp.qid, date: new Date().toISOString().split('T')[0], amount: 0, note: 'Reset', employee: emp });
     } else alert("Access Denied.");
   }
 

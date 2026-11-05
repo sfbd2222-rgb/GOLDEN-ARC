@@ -186,9 +186,10 @@
 
       <div class="flex items-center gap-2 flex-1 max-w-xl">
         <div class="relative flex-1">
-          <input type="text" id="searchInput" oninput="renderApp()" placeholder="Search Name, QID, Phone, Company..." 
-                 class="w-full pl-9 pr-4 py-2 rounded-xl bg-dark-900 border border-slate-700 text-slate-100 text-xs focus:outline-none focus:border-gold-500 transition">
+          <input type="text" id="searchInput" oninput="toggleClearSearchBtn(); renderApp()" placeholder="Search Name, QID, Phone, Company..." 
+                 class="w-full pl-9 pr-9 py-2 rounded-xl bg-dark-900 border border-slate-700 text-slate-100 text-xs focus:outline-none focus:border-gold-500 transition">
           <span class="absolute left-3 top-2.5 text-slate-500 text-xs">🔍</span>
+          <button id="clearSearchBtn" onclick="clearSearchBox()" class="absolute right-2.5 top-2 text-slate-400 hover:text-white text-xs px-1.5 py-0.5 rounded bg-slate-800 hidden font-bold" title="Clear Search">✕</button>
         </div>
       </div>
     </div>
@@ -344,7 +345,13 @@
             <div><label class="text-slate-400 block mb-1">RP Issue Date</label><input type="date" id="m-input-issue" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
             <div><label class="text-slate-400 block mb-1">RP Expire Date</label><input type="date" id="m-input-expire" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
           </div>
-          <div><label class="text-blue-400 font-bold block mb-1">Coming Date</label><input type="date" id="m-input-coming" class="w-full bg-slate-950 border border-blue-600/50 rounded p-2 text-white"></div>
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="text-blue-400 font-bold">Coming Date</label>
+              <button type="button" onclick="document.getElementById('m-input-coming').value=''" class="text-[10px] text-red-400 hover:text-red-300 font-bold bg-slate-900 px-1.5 py-0.5 rounded border border-red-900/50">Clear Date</button>
+            </div>
+            <input type="date" id="m-input-coming" class="w-full bg-slate-950 border border-blue-600/50 rounded p-2 text-white">
+          </div>
           <div><label class="text-slate-400 block mb-1">Note</label><textarea id="m-input-note" rows="2" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></textarea></div>
 
           <div class="space-y-2 pt-2 border-t border-slate-800" id="m-profile-action-btns">
@@ -412,7 +419,13 @@
           <div><label class="text-slate-400 block mb-1">RP Issue Date</label><input type="date" id="add-issue" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
           <div><label class="text-slate-400 block mb-1">RP Expire Date</label><input type="date" id="add-expire" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
         </div>
-        <div><label class="text-blue-400 font-bold block mb-1">Coming Date</label><input type="date" id="add-coming" class="w-full bg-slate-950 border border-blue-600/50 rounded p-2 text-white"></div>
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="text-blue-400 font-bold">Coming Date</label>
+            <button type="button" onclick="document.getElementById('add-coming').value=''" class="text-[10px] text-red-400 hover:text-red-300 font-bold bg-slate-900 px-1.5 py-0.5 rounded border border-red-900/50">Clear Date</button>
+          </div>
+          <input type="date" id="add-coming" class="w-full bg-slate-950 border border-blue-600/50 rounded p-2 text-white">
+        </div>
         <div><label class="text-slate-400 block mb-1">Note</label><textarea id="add-note" rows="2" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></textarea></div>
         <div><label class="text-slate-400 block mb-1">Total Agreed Fee (QAR)</label><input type="number" id="add-total" value="0" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
         <button type="submit" class="w-full py-2.5 bg-gradient-to-r from-gold-600 to-gold-500 text-dark-950 font-bold rounded shadow">Create Record in Database</button>
@@ -434,7 +447,6 @@
   let renewalSubTab = 'pending';
   let completedRenewals = [];
 
-  // Date Formatter Helper: YYYY-MM-DD HH:MM AM/PM
   function formatCustomDateTime(dateObj = new Date()) {
     const year = dateObj.getFullYear();
     const month = String(dateObj.getMonth() + 1).padStart(2, '0');
@@ -456,6 +468,28 @@
       if (!isNaN(d.getTime())) return formatCustomDateTime(d);
     }
     return str;
+  }
+
+  // 1-Click Search Box Clear Function
+  function clearSearchBox() {
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+      searchInput.value = '';
+      toggleClearSearchBtn();
+      renderApp();
+    }
+  }
+
+  function toggleClearSearchBtn() {
+    const searchInput = document.getElementById('searchInput');
+    const clearBtn = document.getElementById('clearSearchBtn');
+    if (searchInput && clearBtn) {
+      if (searchInput.value.trim().length > 0) {
+        clearBtn.classList.remove('hidden');
+      } else {
+        clearBtn.classList.add('hidden');
+      }
+    }
   }
 
   window.addEventListener('DOMContentLoaded', async () => {
@@ -556,7 +590,6 @@
           const qStatus = item.qidStatus ? String(item.qidStatus).trim() : '';
           const rStatus = item.renewStatus ? String(item.renewStatus).trim() : '';
           
-          // Review status detection: True if either QID Status or Renew Status contains data or 'inReview'
           const isReview = (qStatus !== '' || rStatus !== '');
           const activeDateVal = qStatus !== '' ? qStatus : rStatus;
 
@@ -1165,7 +1198,6 @@
     document.getElementById('m-ledger-pay').textContent = (emp.pay || 0) + ' QAR';
     document.getElementById('m-ledger-due').textContent = (emp.due || 0) + ' QAR';
 
-    // Dynamic renewal status badge & button state inside Profile Modal
     const flagBtnContainer = document.getElementById('m-flag-renewal-container');
     if (emp.inRenewalReview) {
       let rawD = emp.renewalRequestedDate || '';

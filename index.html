@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MANAGEMENT PORTAL</title>
+<title>SFBD MANAGEMENT SYSTEM</title>
 <!-- Tailwind CSS -->
 <script src="https://cdn.tailwindcss.com"></script>
 <!-- HTML2PDF Library -->
@@ -85,7 +85,7 @@
         </div>
         
         <button onclick="checkLicenseKeyServer()" class="w-full py-2.5 bg-gradient-to-r from-gold-600 to-gold-500 text-dark-950 font-bold rounded shadow uppercase tracking-wider">
-          🔐 Verify & Connect Live Sheet
+          🔐 Verify & Connect System
         </button>
       </div>
     </div>
@@ -96,17 +96,17 @@
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-3">
         <div id="headerLogoText" class="w-12 h-12 rounded-xl bg-gradient-to-tr from-gold-700 via-gold-500 to-yellow-200 flex items-center justify-center text-dark-950 font-black text-2xl shadow-lg border border-gold-300">
-          MP
+          SF
         </div>
         <div>
           <div class="flex items-center gap-2">
             <h1 id="headerCompanyName" class="text-lg md:text-xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-gold-300 via-yellow-100 to-gold-500 uppercase">
-              Loading Portal...
+              SFBD MANAGEMENT SYSTEM
             </h1>
           </div>
           <div class="flex items-center gap-2 flex-wrap text-xs mt-0.5">
             <span id="syncStatus" class="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-700/50">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> ☁️ 100% Online Sync
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> ☁️ Cloud Active
             </span>
           </div>
         </div>
@@ -114,7 +114,7 @@
 
       <div class="flex items-center gap-2 flex-wrap">
         <button onclick="fetchSheetData()" class="px-3 py-2 rounded-lg bg-dark-800 hover:bg-dark-700 text-gold-400 font-semibold text-xs border border-gold-500/35 transition flex items-center gap-1">
-          🔄 Fetch Sheet Data
+          🔄 Refresh Data
         </button>
         <button onclick="openAddEmployeeModal()" class="px-4 py-2 rounded-lg bg-gradient-to-r from-gold-600 to-gold-500 hover:from-gold-500 text-dark-950 font-bold text-xs tracking-wider uppercase transition shadow-lg">
           ➕ Add Employee
@@ -255,8 +255,8 @@
     <section id="sec-payhistory" class="hidden space-y-4">
       <div class="gold-glass p-4 rounded-xl border border-emerald-500/30 flex justify-between items-center">
         <div>
-          <h2 class="text-base font-bold text-emerald-400">📜 All Payment Transaction History (From Sheet)</h2>
-          <p class="text-xs text-slate-400">Live payment log synced directly from Google Sheet's 'Transection History' tab.</p>
+          <h2 class="text-base font-bold text-emerald-400">📜 All Payment Transaction History</h2>
+          <p class="text-xs text-slate-400">Live payment log synced directly from the cloud database.</p>
         </div>
       </div>
       <div id="payHistoryGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
@@ -267,7 +267,7 @@
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 gold-glass p-4 rounded-xl border border-yellow-500/30">
         <div>
           <h2 class="text-base font-bold text-yellow-400">🔒 QID Renewal Review Queue (Password Protected)</h2>
-          <p class="text-xs text-slate-400">Review pending QID renewals & approved history synced directly from Google Sheet.</p>
+          <p class="text-xs text-slate-400">Review pending QID renewals & approved history securely from database.</p>
         </div>
         <button onclick="downloadRenewalPDF()" class="px-3 py-2 bg-gradient-to-r from-gold-600 to-gold-500 text-dark-950 font-bold text-xs rounded-xl shadow whitespace-nowrap flex items-center gap-1">
           📥 Download Renewal Report (PDF)
@@ -281,7 +281,7 @@
           <div class="text-xl font-bold text-yellow-400 mt-0.5" id="ren-stat-pending">0</div>
         </div>
         <div onclick="switchRenewalSubTab('history')" class="cursor-pointer gold-glass p-3 rounded-xl border-l-4 border-emerald-500 hover:scale-[1.01] transition">
-          <div class="text-[11px] text-slate-400 uppercase font-semibold">✅ Approved / Completed History (Sheet)</div>
+          <div class="text-[11px] text-slate-400 uppercase font-semibold">✅ Approved / Completed History</div>
           <div class="text-xl font-bold text-emerald-400 mt-0.5" id="ren-stat-history">0</div>
         </div>
       </div>
@@ -348,7 +348,7 @@
           <div><label class="text-slate-400 block mb-1">Note</label><textarea id="m-input-note" rows="2" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></textarea></div>
 
           <div class="space-y-2 pt-2 border-t border-slate-800">
-            <button onclick="saveProfileChanges()" class="w-full py-2 bg-gradient-to-r from-gold-600 to-gold-500 text-dark-950 font-bold rounded shadow">💾 Save Changes to Sheet</button>
+            <button onclick="saveProfileChanges()" class="w-full py-2 bg-gradient-to-r from-gold-600 to-gold-500 text-dark-950 font-bold rounded shadow">💾 Save Changes</button>
             <button onclick="flagForRenewalWithPassword()" id="btn-toggle-review" class="w-full py-1.5 bg-yellow-950/80 text-yellow-300 font-bold rounded border border-yellow-700/50">🔒 Flag for Renewal (Requires Password)</button>
             <button onclick="deleteEmployeeWithPassword()" class="w-full py-1.5 bg-red-950 text-red-400 font-bold rounded border border-red-700/60 hover:bg-red-900 transition">❌ Cancel / Delete Employee (Password: SFBD)</button>
           </div>
@@ -369,11 +369,11 @@
             <span class="font-bold text-gold-400 block">➕ Deposit Payment</span>
             <input type="number" id="pay-amount" placeholder="Amount (QAR)" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
             <input type="text" id="pay-note" placeholder="Transaction Note" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
-            <button onclick="addPaymentTransaction()" class="w-full py-1.5 bg-emerald-600 text-white font-bold rounded transition">💰 Add & Save to Sheet</button>
+            <button onclick="addPaymentTransaction()" class="w-full py-1.5 bg-emerald-600 text-white font-bold rounded transition">💰 Add & Save Payment</button>
           </div>
           <button onclick="clearAllPaymentWithPassword()" class="w-full py-1.5 bg-red-950/80 text-red-300 font-bold rounded border border-red-800/60">🔒 Clear Payment (Reset 0 - Password: SFBD)</button>
           <div>
-            <span class="font-bold text-slate-400 block mb-1">Transaction History Logs (Synced from Sheet)</span>
+            <span class="font-bold text-slate-400 block mb-1">Transaction History Logs</span>
             <div id="m-pay-history" class="max-h-24 overflow-y-auto space-y-1 pr-1"></div>
           </div>
         </div>
@@ -413,7 +413,7 @@
         <div><label class="text-blue-400 font-bold block mb-1">Coming Date</label><input type="date" id="add-coming" class="w-full bg-slate-950 border border-blue-600/50 rounded p-2 text-white"></div>
         <div><label class="text-slate-400 block mb-1">Note</label><textarea id="add-note" rows="2" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></textarea></div>
         <div><label class="text-slate-400 block mb-1">Total Agreed Fee (QAR)</label><input type="number" id="add-total" value="0" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
-        <button type="submit" class="w-full py-2.5 bg-gradient-to-r from-gold-600 to-gold-500 text-dark-950 font-bold rounded shadow">Create Record in Sheet</button>
+        <button type="submit" class="w-full py-2.5 bg-gradient-to-r from-gold-600 to-gold-500 text-dark-950 font-bold rounded shadow">Create Record in Database</button>
       </form>
     </div>
   </div>
@@ -454,7 +454,7 @@
       } catch (e) {
         API_URL = savedScriptUrl;
         document.getElementById('licenseLoginModal').classList.add('hidden');
-        updatePortalHeader(savedCompanyName || "MANAGEMENT PORTAL");
+        updatePortalHeader(savedCompanyName || "SFBD MANAGEMENT SYSTEM");
         fetchSheetData();
         return;
       }
@@ -475,12 +475,12 @@
       if (data.status === "SUCCESS") {
         localStorage.setItem('ga_active_license', key);
         localStorage.setItem('ga_script_url', data.scriptUrl);
-        localStorage.setItem('ga_company_name', data.company || "MANAGEMENT PORTAL");
+        localStorage.setItem('ga_company_name', data.company || "SFBD MANAGEMENT SYSTEM");
         
         API_URL = data.scriptUrl;
 
         document.getElementById('licenseLoginModal').classList.add('hidden');
-        updatePortalHeader(data.company || "MANAGEMENT PORTAL");
+        updatePortalHeader(data.company || "SFBD MANAGEMENT SYSTEM");
         alert(`Welcome ${data.client}! License unlocked successfully (${data.plan}).`);
         fetchSheetData();
       } else {
@@ -495,7 +495,7 @@
   function updatePortalHeader(compName) {
     document.getElementById('headerCompanyName').textContent = compName;
     const initials = compName.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
-    document.getElementById('headerLogoText').textContent = initials || 'MP';
+    document.getElementById('headerLogoText').textContent = initials || 'SF';
   }
 
   function logoutLicense() {
@@ -507,7 +507,7 @@
 
   async function fetchSheetData() {
     if (!API_URL) return;
-    updateSyncStatus("Fetching Sheet Data...", "bg-amber-500");
+    updateSyncStatus("Syncing Database...", "bg-amber-500");
     try {
       const res = await fetch(API_URL);
       if (res.ok) {
@@ -536,7 +536,7 @@
         }));
 
         updateCompanyListFromData();
-        updateSyncStatus("100% Online Sync", "bg-emerald-400");
+        updateSyncStatus("Cloud Active", "bg-emerald-400");
         renderApp();
         if (activeEmployeeQid) {
           openEmployeeModal(activeEmployeeQid, true);
@@ -602,7 +602,7 @@
 
   async function postToSheet(action, payload) {
     if (!API_URL) return;
-    updateSyncStatus("Saving to Sheet...", "bg-amber-500");
+    updateSyncStatus("Saving to Cloud...", "bg-amber-500");
     try {
       await fetch(API_URL, {
         method: 'POST',
@@ -610,11 +610,11 @@
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: action, ...payload })
       });
-      updateSyncStatus("100% Online Sync", "bg-emerald-400");
+      updateSyncStatus("Cloud Active", "bg-emerald-400");
       setTimeout(fetchSheetData, 1200);
     } catch (e) {
       updateSyncStatus("Save Failed", "bg-red-400");
-      alert("Failed to save data to sheet: " + e.message);
+      alert("Failed to save data: " + e.message);
     }
   }
 
@@ -832,7 +832,7 @@
           </div>
         </div>
       `;
-    }).join('') : `<div class="col-span-full gold-glass p-8 text-center text-slate-400">No payment transaction history found in Sheet.</div>`;
+    }).join('') : `<div class="col-span-full gold-glass p-8 text-center text-slate-400">No payment transaction history found.</div>`;
   }
 
   function downloadCompanyPDF() {
@@ -842,7 +842,7 @@
     const compName = selectedCompanyFilter === 'ALL' ? 'All Companies' : selectedCompanyFilter;
     const compTotal = filtered.length;
     const compExpired = filtered.filter(e => { const d = getDaysRemaining(e.rpExDate); return d !== 999 && d < 0; }).length;
-    const currentPortalName = localStorage.getItem('ga_company_name') || 'MANAGEMENT PORTAL';
+    const currentPortalName = localStorage.getItem('ga_company_name') || 'SFBD MANAGEMENT SYSTEM';
 
     let htmlContent = `
       <div style="padding: 20px; font-family: Arial, sans-serif; color: #000; background: #fff;">
@@ -1000,7 +1000,7 @@
             <span>Due: <strong class="text-red-400 mono">${(h.due || 0)} QAR</strong></span>
           </div>
         </div>
-      `).join('') : `<div class="gold-glass p-8 text-center text-slate-400">No approved renewal history found in Sheet.</div>`;
+      `).join('') : `<div class="gold-glass p-8 text-center text-slate-400">No approved renewal history found.</div>`;
     }
   }
 
@@ -1010,7 +1010,7 @@
 
     if (!listToPrint.length) return alert("No renewal data available to download!");
 
-    const currentPortalName = localStorage.getItem('ga_company_name') || 'MANAGEMENT PORTAL';
+    const currentPortalName = localStorage.getItem('ga_company_name') || 'SFBD MANAGEMENT SYSTEM';
     const reportTitle = renewalSubTab === 'pending' ? 'Pending Renewal Queue Report' : 'Approved Renewal History Report';
 
     let htmlContent = `
@@ -1137,7 +1137,7 @@
         <div><strong>${h.note}</strong> <br><span class="text-slate-500">${h.date}</span></div>
         <span class="font-bold text-emerald-400">+${h.amount} QAR</span>
       </div>
-    `).join('') : `<div class="text-slate-500 italic">No history logs found in Sheet.</div>`;
+    `).join('') : `<div class="text-slate-500 italic">No history logs found.</div>`;
   }
 
   function saveProfileChanges() {
@@ -1177,7 +1177,7 @@
       const qid = activeEmployeeQid;
       if (!qid) return;
       postToSheet('delete', { qid: qid });
-      alert("Employee record deleted from Sheet successfully!");
+      alert("Employee record deleted successfully!");
     } else {
       alert("Wrong Password! Access Denied.");
     }

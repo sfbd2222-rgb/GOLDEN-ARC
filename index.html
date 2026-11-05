@@ -532,7 +532,7 @@
           rpIssueDate: item.rpIssueDate ? String(item.rpIssueDate).trim() : '',
           rpExDate: item.rpExDate ? String(item.rpExDate).trim() : '',
           commingDate: item.commingDate ? String(item.commingDate).trim() : '',
-          inRenewalReview: (item.qidStatus === 'inReview' || item.renewStatus === 'inReview')
+          inRenewalReview: (item.qidStatus === 'inReview' || item.renewStatus === 'inReview' || String(item.qidStatus).trim() !== '' || String(item.renewStatus).trim() !== '')
         }));
 
         updateCompanyListFromData();
@@ -692,7 +692,7 @@
     else comingBadge.classList.add('hidden');
 
     const dueBadge = document.getElementById('due-badge');
-    if (dueCount > 0) { dueBadge.textContent = dueCount; dueBadge.classList.remove('hidden'); }
+    if (dueCount > 0) { dueBadge.textContent = dueCount; dueBadge.classList.add('hidden'); }
     else dueBadge.classList.add('hidden');
 
     const payBadge = document.getElementById('payhistory-badge');
@@ -931,7 +931,11 @@
 
       grid.innerHTML = filteredPending.length ? filteredPending.map(e => {
         const days = getDaysRemaining(e.rpExDate);
-        const reqDate = e.renewalRequestedDate || 'Not recorded';
+        let statusDateToShow = e.renewalRequestedDate || (e.qidStatus && e.qidStatus !== 'inReview' ? e.qidStatus : '') || (e.renewStatus && e.renewStatus !== 'inReview' ? e.renewStatus : '');
+        let reqDateHtml = '';
+        if (statusDateToShow && String(statusDateToShow).trim() !== '') {
+          reqDateHtml = `📅 Flagged Date: <strong class="text-yellow-300">${statusDateToShow}</strong>`;
+        }
         const paidAmt = e.pay || 0;
         const dueAmt = e.due || 0;
 
@@ -943,7 +947,7 @@
                   <h4 class="font-bold text-white text-base cursor-pointer hover:text-gold-300" onclick="openEmployeeModal('${e.qid}')">${e.name}</h4>
                   <span class="mono text-xs text-gold-400 font-semibold bg-slate-900 px-2 py-0.5 rounded border border-slate-700">QID: ${e.qid}</span>
                 </div>
-                <p class="text-xs text-slate-400 mt-1">Company: <strong class="text-slate-200">${e.company || '-'}</strong> • 📅 Flagged Date: <strong class="text-yellow-300">${reqDate}</strong></p>
+                <p class="text-xs text-slate-400 mt-1">Company: <strong class="text-slate-200">${e.company || '-'}</strong>${reqDateHtml ? ' • ' + reqDateHtml : ''}</p>
               </div>
 
               <div class="flex items-center gap-2 flex-wrap">
@@ -1163,8 +1167,8 @@
       const emp = employees.find(e => String(e.qid) === String(activeEmployeeQid));
       if (!emp) return;
       const todayStr = new Date().toISOString().split('T')[0];
-      emp.qidStatus = 'inReview';
-      emp.renewStatus = 'inReview';
+      emp.qidStatus = todayStr;
+      emp.renewStatus = '';
       emp.inRenewalReview = true;
       emp.renewalRequestedDate = todayStr;
       postToSheet('addOrUpdate', { employee: emp });
@@ -1200,6 +1204,7 @@
       emp.qidStatus = '';
       emp.renewStatus = '';
       emp.inRenewalReview = false;
+      emp.renewalRequestedDate = '';
 
       const renewRecord = {
         qid: emp.qid,
@@ -1223,6 +1228,7 @@
       emp.qidStatus = '';
       emp.renewStatus = '';
       emp.inRenewalReview = false;
+      emp.renewalRequestedDate = '';
       postToSheet('addOrUpdate', { employee: emp });
       alert(`Renewal review cancelled for ${emp.name}.`);
     } else alert("Wrong Password!");
@@ -1254,7 +1260,7 @@
 
   function updateTotalFee() {
     const emp = employees.find(e => String(e.qid) === String(activeEmployeeQid));
-    emp.total = parseFloat(document.getElementById('m-input-total').value) || 0;
+    emp.total = parseFloat(document.getElementById('m-input-data').value) || 0;
     emp.due = Math.max(0, emp.total - emp.pay);
     
     document.getElementById('m-input-total').value = '';
@@ -1269,7 +1275,7 @@
   function handleCreateEmployee(e) {
     e.preventDefault();
     const newEmp = {
-      qid: document.getElementById('add-qid').value.trim(),
+      qid: document.getElementById('add-qid').value.text?.trim() || document.getElementById('add-qid').value.trim(),
       name: document.getElementById('add-name').value.trim(),
       company: document.getElementById('add-company').value.trim(),
       gender: document.getElementById('add-gender').value,

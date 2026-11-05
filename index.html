@@ -347,9 +347,11 @@
           <div><label class="text-blue-400 font-bold block mb-1">Coming Date</label><input type="date" id="m-input-coming" class="w-full bg-slate-950 border border-blue-600/50 rounded p-2 text-white"></div>
           <div><label class="text-slate-400 block mb-1">Note</label><textarea id="m-input-note" rows="2" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></textarea></div>
 
-          <div class="space-y-2 pt-2 border-t border-slate-800">
+          <div class="space-y-2 pt-2 border-t border-slate-800" id="m-profile-action-btns">
             <button onclick="saveProfileChanges()" class="w-full py-2 bg-gradient-to-r from-gold-600 to-gold-500 text-dark-950 font-bold rounded shadow">💾 Save Changes</button>
-            <button onclick="flagForRenewalWithPassword()" id="btn-toggle-review" class="w-full py-1.5 bg-yellow-950/80 text-yellow-300 font-bold rounded border border-yellow-700/50">🔒 Flag for Renewal (Requires Password)</button>
+            <div id="m-flag-renewal-container">
+              <button onclick="flagForRenewalWithPassword()" id="btn-toggle-review" class="w-full py-1.5 bg-yellow-950/80 text-yellow-300 font-bold rounded border border-yellow-700/50">🔒 Flag for Renewal (Requires Password)</button>
+            </div>
             <button onclick="deleteEmployeeWithPassword()" class="w-full py-1.5 bg-red-950 text-red-400 font-bold rounded border border-red-700/60 hover:bg-red-900 transition">❌ Cancel / Delete Employee (Requires Password)</button>
           </div>
         </div>
@@ -431,6 +433,30 @@
   let transactionHistoryCloud = [];
   let renewalSubTab = 'pending';
   let completedRenewals = [];
+
+  // Date Formatter Helper: YYYY-MM-DD HH:MM AM/PM
+  function formatCustomDateTime(dateObj = new Date()) {
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    let hours = dateObj.getHours();
+    const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+    const strHours = String(hours).padStart(2, '0');
+    return `${year}-${month}-${day} ${strHours}:${minutes} ${ampm}`;
+  }
+
+  function formatDisplayDate(val) {
+    if (!val || String(val).trim() === '') return '';
+    const str = String(val).trim();
+    if (str.includes('T') && str.endsWith('Z')) {
+      const d = new Date(str);
+      if (!isNaN(d.getTime())) return formatCustomDateTime(d);
+    }
+    return str;
+  }
 
   window.addEventListener('DOMContentLoaded', async () => {
     const savedKey = localStorage.getItem('ga_active_license');
@@ -526,14 +552,24 @@
           }
         }
 
-        employees = rawEmp.map(item => ({
-          ...item,
-          dob: item.dob ? String(item.dob).trim() : '',
-          rpIssueDate: item.rpIssueDate ? String(item.rpIssueDate).trim() : '',
-          rpExDate: item.rpExDate ? String(item.rpExDate).trim() : '',
-          commingDate: item.commingDate ? String(item.commingDate).trim() : '',
-          inRenewalReview: (item.qidStatus === 'inReview' || item.renewStatus === 'inReview' || String(item.qidStatus).trim() !== '' || String(item.renewStatus).trim() !== '')
-        }));
+        employees = rawEmp.map(item => {
+          const qStatus = item.qidStatus ? String(item.qidStatus).trim() : '';
+          const rStatus = item.renewStatus ? String(item.renewStatus).trim() : '';
+          
+          // Review status detection: True if either QID Status or Renew Status contains data or 'inReview'
+          const isReview = (qStatus !== '' || rStatus !== '');
+          const activeDateVal = qStatus !== '' ? qStatus : rStatus;
+
+          return {
+            ...item,
+            dob: item.dob ? String(item.dob).trim() : '',
+            rpIssueDate: item.rpIssueDate ? String(item.rpIssueDate).trim() : '',
+            rpExDate: item.rpExDate ? String(item.rpExDate).trim() : '',
+            commingDate: item.commingDate ? String(item.commingDate).trim() : '',
+            inRenewalReview: isReview,
+            renewalRequestedDate: activeDateVal
+          };
+        });
 
         updateCompanyListFromData();
         updateSyncStatus("Cloud Active", "bg-emerald-400");
@@ -828,7 +864,7 @@
           <div class="text-xs text-slate-300 space-y-0.5">
             <div><span>Note:</span> <strong class="text-slate-100">${tx.note || 'Deposit'}</strong></div>
             <div><span>Company:</span> <span class="text-slate-400">${emp ? emp.company : '-'}</span></div>
-            <div class="text-[11px] text-slate-500 pt-1">Date: ${tx.date}</div>
+            <div class="text-[11px] text-slate-500 pt-1">Date: ${formatDisplayDate(tx.date)}</div>
           </div>
         </div>
       `;
@@ -926,15 +962,16 @@
     if (renewalSubTab === 'pending') {
       let filteredPending = pendingList;
       if (filterDate) {
-        filteredPending = pendingList.filter(e => e.renewalRequestedDate === filterDate || e.rpExDate === filterDate);
+        filteredPending = pendingList.filter(e => String(e.renewalRequestedDate).includes(filterDate) || e.rpExDate === filterDate);
       }
 
       grid.innerHTML = filteredPending.length ? filteredPending.map(e => {
         const days = getDaysRemaining(e.rpExDate);
-        let statusDateToShow = e.renewalRequestedDate || (e.qidStatus && e.qidStatus !== 'inReview' ? e.qidStatus : '') || (e.renewStatus && e.renewStatus !== 'inReview' ? e.renewStatus : '');
+        let rawDate = e.renewalRequestedDate || '';
+        let displayDate = formatDisplayDate(rawDate);
         let reqDateHtml = '';
-        if (statusDateToShow && String(statusDateToShow).trim() !== '') {
-          reqDateHtml = `📅 Flagged Date: <strong class="text-yellow-300">${statusDateToShow}</strong>`;
+        if (displayDate) {
+          reqDateHtml = `📅 Flagged Date: <strong class="text-yellow-300">${displayDate}</strong>`;
         }
         const paidAmt = e.pay || 0;
         const dueAmt = e.due || 0;
@@ -987,7 +1024,7 @@
     } else {
       let filteredHistory = completedRenewals;
       if (filterDate) {
-        filteredHistory = completedRenewals.filter(h => h.doneDate === filterDate || h.rpExDate === filterDate);
+        filteredHistory = completedRenewals.filter(h => String(h.doneDate).includes(filterDate) || h.rpExDate === filterDate);
       }
 
       grid.innerHTML = filteredHistory.length ? filteredHistory.map(h => `
@@ -995,7 +1032,7 @@
           <div class="flex justify-between items-start">
             <div>
               <h4 class="font-bold text-white text-sm">${h.name} (QID: ${h.qid})</h4>
-              <p class="text-xs text-slate-400">Company: ${h.company || '-'} • Approved Date: <strong class="text-emerald-400">${h.doneDate}</strong></p>
+              <p class="text-xs text-slate-400">Company: ${h.company || '-'} • Approved Date: <strong class="text-emerald-400">${formatDisplayDate(h.doneDate)}</strong></p>
             </div>
             <span class="px-2.5 py-1 rounded bg-emerald-950 text-emerald-400 border border-emerald-700/50 text-xs font-bold">✅ Extended to: ${h.rpExDate}</span>
           </div>
@@ -1021,7 +1058,7 @@
       <div style="padding: 20px; font-family: Arial, sans-serif; color: #000; background: #fff;">
         <h2 style="text-align: center; color: #d4af37; margin-bottom: 5px;">${currentPortalName}</h2>
         <h3 style="text-align: center; margin-top: 0; font-size: 14px;">${reportTitle}</h3>
-        <p style="font-size: 11px; margin-bottom: 10px;"><strong>Total Records:</strong> ${listToPrint.length} | <strong>Generated Date:</strong> ${new Date().toISOString().split('T')[0]}</p>
+        <p style="font-size: 11px; margin-bottom: 10px;"><strong>Total Records:</strong> ${listToPrint.length} | <strong>Generated Date:</strong> ${formatCustomDateTime()}</p>
         <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 10px;">
           <thead>
             <tr style="background: #f1f5f9;">
@@ -1046,7 +1083,7 @@
           <td style="border: 1px solid #cbd5e1; padding: 6px;">${item.rpExDate || '-'}</td>
           <td style="border: 1px solid #cbd5e1; padding: 6px;">${item.pay || 0}</td>
           <td style="border: 1px solid #cbd5e1; padding: 6px;">${item.due || 0}</td>
-          <td style="border: 1px solid #cbd5e1; padding: 6px;">${item.renewalRequestedDate || item.doneDate || '-'}</td>
+          <td style="border: 1px solid #cbd5e1; padding: 6px;">${formatDisplayDate(item.renewalRequestedDate || item.doneDate || '-')}</td>
         </tr>
       `;
     });
@@ -1128,6 +1165,27 @@
     document.getElementById('m-ledger-pay').textContent = (emp.pay || 0) + ' QAR';
     document.getElementById('m-ledger-due').textContent = (emp.due || 0) + ' QAR';
 
+    // Dynamic renewal status badge & button state inside Profile Modal
+    const flagBtnContainer = document.getElementById('m-flag-renewal-container');
+    if (emp.inRenewalReview) {
+      let rawD = emp.renewalRequestedDate || '';
+      let displayD = formatDisplayDate(rawD);
+      flagBtnContainer.innerHTML = `
+        <div class="p-2 bg-yellow-950/90 rounded border border-yellow-500/60 text-center space-y-1">
+          <span class="px-2 py-0.5 rounded text-[11px] font-black bg-yellow-500 text-dark-950 inline-block uppercase tracking-wider">
+            ⏳ IN REVIEW
+          </span>
+          ${displayD ? `<div class="text-[10px] text-yellow-300 font-mono">Flagged: ${displayD}</div>` : ''}
+        </div>
+      `;
+    } else {
+      flagBtnContainer.innerHTML = `
+        <button onclick="flagForRenewalWithPassword()" id="btn-toggle-review" class="w-full py-1.5 bg-yellow-950/80 text-yellow-300 font-bold rounded border border-yellow-700/50">
+          🔒 Flag for Renewal (Requires Password)
+        </button>
+      `;
+    }
+
     renderHistoryLogs(emp);
     if (!isLiveRefresh) {
       document.getElementById('employeeModal').classList.remove('hidden');
@@ -1138,7 +1196,7 @@
     const histEl = document.getElementById('m-pay-history');
     histEl.innerHTML = (emp.history && emp.history.length) ? emp.history.map(h => `
       <div class="bg-slate-950 p-2 rounded border border-slate-800 text-[11px] flex justify-between">
-        <div><strong>${h.note}</strong> <br><span class="text-slate-500">${h.date}</span></div>
+        <div><strong>${h.note}</strong> <br><span class="text-slate-500">${formatDisplayDate(h.date)}</span></div>
         <span class="font-bold text-emerald-400">+${h.amount} QAR</span>
       </div>
     `).join('') : `<div class="text-slate-500 italic">No history logs found.</div>`;
@@ -1166,13 +1224,17 @@
     if (prompt("Enter Password to Flag for Renewal:") === "SFBD") {
       const emp = employees.find(e => String(e.qid) === String(activeEmployeeQid));
       if (!emp) return;
-      const todayStr = new Date().toISOString().split('T')[0];
-      emp.qidStatus = todayStr;
-      emp.renewStatus = '';
+      
+      const customFormattedNow = formatCustomDateTime(new Date());
+
+      emp.qidStatus = customFormattedNow;
+      emp.renewStatus = customFormattedNow;
       emp.inRenewalReview = true;
-      emp.renewalRequestedDate = todayStr;
+      emp.renewalRequestedDate = customFormattedNow;
+
       postToSheet('addOrUpdate', { employee: emp });
       alert("Flagged for Renewal successfully!");
+      openEmployeeModal(emp.qid, true);
     } else alert("Wrong Password!");
   }
 
@@ -1198,7 +1260,7 @@
       const year = curr.getFullYear();
       const month = String(curr.getMonth() + 1).padStart(2, '0');
       const day = String(curr.getDate()).padStart(2, '0');
-      const todayStr = new Date().toISOString().split('T')[0];
+      const customFormattedNow = formatCustomDateTime(new Date());
 
       emp.rpExDate = `${year}-${month}-${day}`;
       emp.qidStatus = '';
@@ -1213,7 +1275,7 @@
         rpExDate: emp.rpExDate,
         pay: emp.pay,
         due: emp.due,
-        doneDate: todayStr
+        doneDate: customFormattedNow
       };
 
       postToSheet('addRenewHistory', { ...renewRecord, employee: emp });
@@ -1242,7 +1304,8 @@
 
     emp.pay += amt;
     emp.due = Math.max(0, emp.total - emp.pay);
-    const tx = { qid: emp.qid, date: new Date().toISOString().split('T')[0], amount: amt, note: note };
+    const customFormattedNow = formatCustomDateTime(new Date());
+    const tx = { qid: emp.qid, date: customFormattedNow, amount: amt, note: note };
 
     document.getElementById('pay-amount').value = '';
     document.getElementById('pay-note').value = '';
@@ -1254,13 +1317,14 @@
     if (prompt("Enter Password to Reset Ledger:") === "SFBD") {
       const emp = employees.find(e => String(e.qid) === String(activeEmployeeQid));
       emp.total = 0; emp.pay = 0; emp.due = 0;
-      postToSheet('addTransaction', { qid: emp.qid, date: new Date().toISOString().split('T')[0], amount: 0, note: 'Reset', employee: emp });
+      const customFormattedNow = formatCustomDateTime(new Date());
+      postToSheet('addTransaction', { qid: emp.qid, date: customFormattedNow, amount: 0, note: 'Reset', employee: emp });
     } else alert("Access Denied.");
   }
 
   function updateTotalFee() {
     const emp = employees.find(e => String(e.qid) === String(activeEmployeeQid));
-    emp.total = parseFloat(document.getElementById('m-input-data').value) || 0;
+    emp.total = parseFloat(document.getElementById('m-input-total').value) || 0;
     emp.due = Math.max(0, emp.total - emp.pay);
     
     document.getElementById('m-input-total').value = '';
@@ -1275,7 +1339,7 @@
   function handleCreateEmployee(e) {
     e.preventDefault();
     const newEmp = {
-      qid: document.getElementById('add-qid').value.text?.trim() || document.getElementById('add-qid').value.trim(),
+      qid: document.getElementById('add-qid').value.trim(),
       name: document.getElementById('add-name').value.trim(),
       company: document.getElementById('add-company').value.trim(),
       gender: document.getElementById('add-gender').value,

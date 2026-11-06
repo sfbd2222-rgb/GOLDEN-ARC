@@ -51,7 +51,7 @@
         <p class="text-slate-400 text-xs">Choose your official subscription plan or enter license key to unlock.</p>
       </div>
 
-      <!-- LARGE PROMINENT PRICING PLANS RESTORED -->
+      <!-- LARGE PROMINENT PRICING PLANS -->
       <div class="space-y-2">
         <div class="text-center font-bold text-gold-400 text-xs tracking-wider uppercase flex items-center justify-center gap-1">
           <span>🏷️ Official SFBD Subscription Plans</span>
@@ -107,6 +107,10 @@
           <div class="flex items-center gap-2 flex-wrap text-xs mt-0.5">
             <span id="syncStatus" class="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-700/50">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> ☁️ Cloud Active
+            </span>
+            <!-- DYNAMIC GREEN API WHATSAPP STATUS BADGE -->
+            <span id="waStatusBadge" class="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-slate-900 text-slate-400 border border-slate-700" title="Green API WhatsApp Integration Status">
+              <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span> WA Checking...
             </span>
           </div>
         </div>
@@ -447,15 +451,76 @@
   </div>
 
 <script>
-  const LICENSE_API_URL = "https://script.google.com/macros/s/AKfycbzMoy44EehZ2cvPVamfVj-BM-lNl368iUMpvvhJ1g44F81xXHxHQGWR_KRYvcyLz86bCA/exec";
+  const LICENSE_API_URL = "https://script.google.com/macros/s/AKfycbyHVjLkAX_J6V7FYSzl3gJDhz2BMtO1FwpIX1GQidmB-lD_mM72GGZdGAiwsMtxdePF1g/exec";
 
-  // GREEN API CREDENTIALS
-  const GREEN_API_URL = "https://7107.api.greenapi.com";
-  const GREEN_ID_INSTANCE = "710722738595";
-  const GREEN_API_TOKEN = "2e28901ab695418888d90c47f8bfa086b403ed944ba340468f";
+  let GREEN_ID_INSTANCE = localStorage.getItem('ga_green_id') || "";
+  let GREEN_API_TOKEN = localStorage.getItem('ga_green_token') || "";
+
+  function updateWhatsAppStatusUI(status, message = "") {
+    const badge = document.getElementById('waStatusBadge');
+    if (!badge) return;
+    
+    const idVal = String(GREEN_ID_INSTANCE || "").trim();
+    const tokenVal = String(GREEN_API_TOKEN || "").trim();
+
+    if (!idVal || !tokenVal) {
+      badge.className = "inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-red-950 text-red-300 border border-red-700/50 font-bold";
+      badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> 🔴 WA No Key (H/I Empty)`;
+      badge.title = "Column H (idInstance) or Column I (apiTokenInstance) is missing in License Sheet!";
+      return;
+    }
+
+    if (status === 'AUTHORIZED' || status === 'ACTIVE') {
+      badge.className = "inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-700/50 font-bold";
+      badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> 🟢 WA Active`;
+      badge.title = "WhatsApp Integration Active & Authorized";
+    } else {
+      badge.className = "inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-red-950 text-red-300 border border-red-700/50 font-bold";
+      badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> 🔴 WA ${status}`;
+      badge.title = message || "WhatsApp API connection error";
+    }
+  }
+
+  async function checkGreenApiHealth() {
+    const idVal = String(GREEN_ID_INSTANCE || "").trim();
+    const tokenVal = String(GREEN_API_TOKEN || "").trim();
+
+    if (!idVal || !tokenVal) {
+      updateWhatsAppStatusUI('MISSING_CREDENTIALS');
+      return false;
+    }
+
+    const endpoint = `https://7107.api.greenapi.com/waInstance${idVal}/getStateInstance/${tokenVal}`;
+    try {
+      const res = await fetch(endpoint);
+      if (res.ok) {
+        const data = await res.json();
+        const state = data.stateInstance ? String(data.stateInstance).toUpperCase() : "UNKNOWN";
+        if (state === 'AUTHORIZED' || state === 'ACTIVE' || state === 'ONLINE') {
+          updateWhatsAppStatusUI('AUTHORIZED');
+          return true;
+        } else {
+          updateWhatsAppStatusUI(state, `Instance state: ${state}`);
+          return false;
+        }
+      } else {
+        updateWhatsAppStatusUI('OFFLINE', `HTTP ${res.status}`);
+        return false;
+      }
+    } catch (e) {
+      updateWhatsAppStatusUI('ERROR', e.message);
+      return false;
+    }
+  }
 
   async function sendGreenApiWhatsApp(phone, message) {
-    if (!phone) return;
+    const idVal = String(GREEN_ID_INSTANCE || "").trim();
+    const tokenVal = String(GREEN_API_TOKEN || "").trim();
+
+    if (!phone || !idVal || !tokenVal) {
+      console.warn("WhatsApp message skipped: Missing phone or Green API credentials.");
+      return;
+    }
     let cleanPhone = String(phone).replace(/\D/g, '');
     if (!cleanPhone) return;
     if (cleanPhone.length === 8) {
@@ -463,18 +528,22 @@
     } else if (!cleanPhone.startsWith("974") && cleanPhone.length > 8) {
       cleanPhone = "974" + cleanPhone.slice(-8);
     }
-    const endpoint = `${GREEN_API_URL}/waInstance${GREEN_ID_INSTANCE}/sendMessage/${GREEN_API_TOKEN}`;
+    const endpoint = `https://7107.api.greenapi.com/waInstance${idVal}/sendMessage/${tokenVal}`;
     const payload = {
       chatId: cleanPhone + "@c.us",
       message: message
     };
     try {
-      await fetch(endpoint, {
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      console.log("WhatsApp message sent successfully to " + cleanPhone);
+      if (res.ok) {
+        console.log("WhatsApp message sent successfully to " + cleanPhone);
+      } else {
+        console.error("WhatsApp send HTTP Error: ", res.status);
+      }
     } catch (err) {
       console.error("WhatsApp send error: ", err);
     }
@@ -640,6 +709,17 @@
         if (data.status === "SUCCESS") {
           API_URL = data.scriptUrl;
           
+          if (data.idInstance) {
+            GREEN_ID_INSTANCE = String(data.idInstance).trim();
+            localStorage.setItem('ga_green_id', GREEN_ID_INSTANCE);
+          }
+          if (data.apiTokenInstance) {
+            GREEN_API_TOKEN = String(data.apiTokenInstance).trim();
+            localStorage.setItem('ga_green_token', GREEN_API_TOKEN);
+          }
+
+          checkGreenApiHealth();
+
           const liveExp = data.expiryDate || data.expiry || data.expireDate || data.Expiry_Date || data.validUntil;
           if (liveExp) {
             activeLicenseExpiryDate = liveExp;
@@ -658,6 +738,7 @@
         API_URL = savedScriptUrl;
         document.getElementById('licenseLoginModal').classList.add('hidden');
         updatePortalHeader(savedCompanyName || "SFBD MANAGEMENT SYSTEM");
+        checkGreenApiHealth();
         fetchSheetData();
         return;
       }
@@ -679,6 +760,24 @@
         localStorage.setItem('ga_active_license', key);
         localStorage.setItem('ga_script_url', data.scriptUrl);
         localStorage.setItem('ga_company_name', data.company || "SFBD MANAGEMENT SYSTEM");
+
+        if (data.idInstance) {
+          GREEN_ID_INSTANCE = String(data.idInstance).trim();
+          localStorage.setItem('ga_green_id', GREEN_ID_INSTANCE);
+        } else {
+          GREEN_ID_INSTANCE = "";
+          localStorage.removeItem('ga_green_id');
+        }
+
+        if (data.apiTokenInstance) {
+          GREEN_API_TOKEN = String(data.apiTokenInstance).trim();
+          localStorage.setItem('ga_green_token', GREEN_API_TOKEN);
+        } else {
+          GREEN_API_TOKEN = "";
+          localStorage.removeItem('ga_green_token');
+        }
+
+        checkGreenApiHealth();
 
         const expDate = data.expiryDate || data.expiry || data.expireDate || data.Expiry_Date || data.validUntil || null;
         if (expDate) {
@@ -728,6 +827,15 @@
           .then(res => res.json())
           .then(data => {
             if (data) {
+              if (data.idInstance) { 
+                GREEN_ID_INSTANCE = String(data.idInstance).trim(); 
+                localStorage.setItem('ga_green_id', GREEN_ID_INSTANCE); 
+              }
+              if (data.apiTokenInstance) { 
+                GREEN_API_TOKEN = String(data.apiTokenInstance).trim(); 
+                localStorage.setItem('ga_green_token', GREEN_API_TOKEN); 
+              }
+              checkGreenApiHealth();
               const freshExpiry = data.expiryDate || data.expiry || data.expireDate || data.Expiry_Date || null;
               if (freshExpiry && freshExpiry !== activeLicenseExpiryDate) {
                 activeLicenseExpiryDate = freshExpiry;
@@ -1435,7 +1543,6 @@
     emp.phone = document.getElementById('m-input-phone').value.trim();
     emp.rpIssueDate = document.getElementById('m-input-issue').value;
     emp.rpExDate = document.getElementById('m-input-expire').value;
-    
     const oldComing = emp.commingDate;
     emp.commingDate = document.getElementById('m-input-coming').value;
     emp.note = document.getElementById('m-input-note').value.trim();

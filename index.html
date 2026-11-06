@@ -449,6 +449,37 @@
 <script>
   const LICENSE_API_URL = "https://script.google.com/macros/s/AKfycbzMoy44EehZ2cvPVamfVj-BM-lNl368iUMpvvhJ1g44F81xXHxHQGWR_KRYvcyLz86bCA/exec";
 
+  // GREEN API CREDENTIALS
+  const GREEN_API_URL = "https://7107.api.greenapi.com";
+  const GREEN_ID_INSTANCE = "710722738595";
+  const GREEN_API_TOKEN = "2e28901ab695418888d90c47f8bfa086b403ed944ba340468f";
+
+  async function sendGreenApiWhatsApp(phone, message) {
+    if (!phone) return;
+    let cleanPhone = String(phone).replace(/\D/g, '');
+    if (!cleanPhone) return;
+    if (cleanPhone.length === 8) {
+      cleanPhone = "974" + cleanPhone;
+    } else if (!cleanPhone.startsWith("974") && cleanPhone.length > 8) {
+      cleanPhone = "974" + cleanPhone.slice(-8);
+    }
+    const endpoint = `${GREEN_API_URL}/waInstance${GREEN_ID_INSTANCE}/sendMessage/${GREEN_API_TOKEN}`;
+    const payload = {
+      chatId: cleanPhone + "@c.us",
+      message: message
+    };
+    try {
+      await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      console.log("WhatsApp message sent successfully to " + cleanPhone);
+    } catch (err) {
+      console.error("WhatsApp send error: ", err);
+    }
+  }
+
   let API_URL = ""; 
   let employees = [];
   let customCompanies = ["GENERAL CONTRACTING & TRADING"];
@@ -751,6 +782,7 @@
         updateCompanyListFromData();
         updateSyncStatus("Cloud Active", "bg-emerald-400");
         renderApp();
+        checkAutomaticComingDateReminders();
         if (activeEmployeeQid) {
           openEmployeeModal(activeEmployeeQid, true);
         }
@@ -864,6 +896,19 @@
     } else {
       return `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-700/50">🟢 SAFE (${days}d left)</span>`;
     }
+  }
+
+  function checkAutomaticComingDateReminders() {
+    const todayStr = new Date().toISOString().split('T')[0];
+    employees.forEach(e => {
+      if (e.commingDate === todayStr && e.phone) {
+        const reminderKey = `sent_coming_${e.qid}_${todayStr}`;
+        if (!localStorage.getItem(reminderKey)) {
+          sendGreenApiWhatsApp(e.phone, `🔔 *Coming Date Reminder*\nHello ${e.name}, today is your scheduled coming date. Please note accordingly.`);
+          localStorage.setItem(reminderKey, 'true');
+        }
+      }
+    });
   }
 
   function renderApp() {
@@ -1390,8 +1435,14 @@
     emp.phone = document.getElementById('m-input-phone').value.trim();
     emp.rpIssueDate = document.getElementById('m-input-issue').value;
     emp.rpExDate = document.getElementById('m-input-expire').value;
+    
+    const oldComing = emp.commingDate;
     emp.commingDate = document.getElementById('m-input-coming').value;
     emp.note = document.getElementById('m-input-note').value.trim();
+
+    if (emp.commingDate && emp.commingDate !== oldComing && emp.phone) {
+      sendGreenApiWhatsApp(emp.phone, `📅 *Coming Date Set*\nHello ${emp.name}, your coming date has been scheduled for: *${emp.commingDate}*.`);
+    }
 
     postToSheet('addOrUpdate', { employee: emp });
   }
@@ -1407,6 +1458,10 @@
       emp.renewStatus = customFormattedNow;
       emp.inRenewalReview = true;
       emp.renewalRequestedDate = customFormattedNow;
+
+      if (emp.phone) {
+        sendGreenApiWhatsApp(emp.phone, `🔒 *QID Renewal Review*\nHello ${emp.name}, your record has been submitted for QID renewal review.`);
+      }
 
       postToSheet('addOrUpdate', { employee: emp });
       alert("Flagged for Renewal successfully!");
@@ -1454,6 +1509,10 @@
         doneDate: customFormattedNow
       };
 
+      if (emp.phone) {
+        sendGreenApiWhatsApp(emp.phone, `✅ *RP Renewed Successfully*\nHello ${emp.name}, your RP has been extended for 1 year. New Expiry: *${emp.rpExDate}*.`);
+      }
+
       postToSheet('addRenewHistory', { ...renewRecord, employee: emp });
       alert(`Extension approved for ${emp.name}! New RP Expire: ${emp.rpExDate}`);
     } else alert("Wrong Password!");
@@ -1485,6 +1544,10 @@
 
     document.getElementById('pay-amount').value = '';
     document.getElementById('pay-note').value = '';
+
+    if (emp.phone) {
+      sendGreenApiWhatsApp(emp.phone, `💰 *Payment Received*\nHello ${emp.name},\nWe received your payment of *${amt} QAR*.\nNote: ${note}\nRemaining Due: *${emp.due} QAR*. Thank you!`);
+    }
 
     postToSheet('addTransaction', { qid: emp.qid, date: tx.date, amount: tx.amount, note: tx.note, employee: emp });
   }

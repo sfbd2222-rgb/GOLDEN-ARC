@@ -51,7 +51,7 @@
         <p class="text-slate-400 text-xs">Choose your official subscription plan or enter license key to unlock.</p>
       </div>
 
-      <!-- LARGE PROMINENT PRICING PLANS -->
+      <!-- LARGE PROMINENT PRICING PLANS RESTORED -->
       <div class="space-y-2">
         <div class="text-center font-bold text-gold-400 text-xs tracking-wider uppercase flex items-center justify-center gap-1">
           <span>🏷️ Official SFBD Subscription Plans</span>
@@ -112,7 +112,20 @@
         </div>
       </div>
 
-      <div class="flex items-center gap-2 flex-wrap">
+      <div class="flex items-center gap-2 flex-wrap justify-end">
+        <!-- TOP RIGHT CORNER: LIVE SHEET E COLUMN EXPIRY COUNTDOWN -->
+        <div id="licenseExpiryCard" class="px-3 py-1.5 rounded-xl bg-slate-900/90 border border-gold-500/40 shadow-md flex items-center gap-2 text-xs">
+          <div class="text-right">
+            <div class="text-[9px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-end gap-1">
+              <span>🔑 LICENSE VALIDITY</span>
+              <span id="licensePlanBadge" class="text-[9px] px-1 rounded bg-slate-800 text-slate-300 border border-slate-700">Checking...</span>
+            </div>
+            <div id="licenseCountdownText" class="mono font-black text-gold-300 text-xs tracking-tight">
+              Loading Date...
+            </div>
+          </div>
+        </div>
+
         <button onclick="fetchSheetData()" class="px-3 py-2 rounded-lg bg-dark-800 hover:bg-dark-700 text-gold-400 font-semibold text-xs border border-gold-500/35 transition flex items-center gap-1">
           🔄 Refresh Data
         </button>
@@ -434,7 +447,7 @@
   </div>
 
 <script>
-  const LICENSE_API_URL = "https://script.google.com/macros/s/AKfycbx376mleiLeFWgOdZDhshFr27U2XTev6HrtYgN0k0ySo6t3vHQHKP3bed20T9GDaQfMBw/exec";
+  const LICENSE_API_URL = "https://script.google.com/macros/s/AKfycbzMoy44EehZ2cvPVamfVj-BM-lNl368iUMpvvhJ1g44F81xXHxHQGWR_KRYvcyLz86bCA/exec";
 
   let API_URL = ""; 
   let employees = [];
@@ -446,6 +459,23 @@
   let transactionHistoryCloud = [];
   let renewalSubTab = 'pending';
   let completedRenewals = [];
+
+  let activeLicenseExpiryDate = null;
+  let countdownTimerInterval = null;
+
+  function parseFormattedDateString(dateStr) {
+    if (!dateStr || String(dateStr).trim() === '') return null;
+    const cleanStr = String(dateStr).trim();
+    
+    const dmyRegex = /^(\d{2})[\-\/](\d{2})[\-\/](\d{4})$/;
+    if (dmyRegex.test(cleanStr)) {
+      const parts = cleanStr.match(dmyRegex);
+      return new Date(`${parts[3]}-${parts[2]}-${parts[1]}T23:59:59`);
+    }
+    
+    const parsed = new Date(cleanStr);
+    return isNaN(parsed.getTime()) ? null : parsed;
+  }
 
   function formatCustomDateTime(dateObj = new Date()) {
     const year = dateObj.getFullYear();
@@ -470,7 +500,75 @@
     return str;
   }
 
-  // 1-Click Search Box Clear Function
+  function updateLicenseExpiryCountdownUI() {
+    const countdownEl = document.getElementById('licenseCountdownText');
+    const planBadgeEl = document.getElementById('licensePlanBadge');
+    if (!countdownEl) return;
+
+    if (!activeLicenseExpiryDate) {
+      countdownEl.innerHTML = `<span class="text-red-400 font-bold">No Expiry Set</span>`;
+      if (planBadgeEl) {
+        planBadgeEl.textContent = "Missing Date";
+        planBadgeEl.className = "text-[9px] px-1 rounded bg-red-900/60 text-red-300 border border-red-500/50";
+      }
+      return;
+    }
+
+    const targetDateObj = parseFormattedDateString(activeLicenseExpiryDate);
+    if (!targetDateObj) {
+      countdownEl.innerHTML = `<span class="text-red-400 font-bold">Invalid Date: ${activeLicenseExpiryDate}</span>`;
+      if (planBadgeEl) {
+        planBadgeEl.textContent = "Format Error";
+        planBadgeEl.className = "text-[9px] px-1 rounded bg-red-900/60 text-red-300 border border-red-500/50";
+      }
+      return;
+    }
+
+    const now = new Date().getTime();
+    const target = targetDateObj.getTime();
+    const diff = target - now;
+
+    if (diff <= 0) {
+      countdownEl.innerHTML = `<span class="text-red-500 font-extrabold animate-pulse">⚠️ LICENSE EXPIRED</span>`;
+      if (planBadgeEl) {
+        planBadgeEl.textContent = "Expired";
+        planBadgeEl.className = "text-[9px] px-1 rounded bg-red-900/60 text-red-300 border border-red-500/50";
+      }
+      return;
+    }
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+    let textColor = "text-gold-300";
+    if (days <= 30) {
+      textColor = "text-amber-400 animate-pulse";
+      if (planBadgeEl) {
+        planBadgeEl.textContent = "Renew Soon";
+        planBadgeEl.className = "text-[9px] px-1 rounded bg-amber-500/30 text-amber-300 border border-amber-500/40";
+      }
+    } else {
+      if (planBadgeEl) {
+        planBadgeEl.textContent = `${days} DAYS LEFT`;
+        planBadgeEl.className = "text-[9px] px-1 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold";
+      }
+    }
+
+    countdownEl.innerHTML = `
+      <span class="${textColor}">
+        ⏱️ ${days}d ${String(hours).padStart(2,'0')}h ${String(minutes).padStart(2,'0')}m ${String(seconds).padStart(2,'0')}s
+      </span>
+    `;
+  }
+
+  function startLicenseCountdownTimer() {
+    if (countdownTimerInterval) clearInterval(countdownTimerInterval);
+    updateLicenseExpiryCountdownUI();
+    countdownTimerInterval = setInterval(updateLicenseExpiryCountdownUI, 1000);
+  }
+
   function clearSearchBox() {
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
@@ -496,6 +594,12 @@
     const savedKey = localStorage.getItem('ga_active_license');
     const savedScriptUrl = localStorage.getItem('ga_script_url');
     const savedCompanyName = localStorage.getItem('ga_company_name');
+    const savedExpiry = localStorage.getItem('ga_license_expiry');
+
+    if (savedExpiry) {
+      activeLicenseExpiryDate = savedExpiry;
+      startLicenseCountdownTimer();
+    }
 
     if (savedKey && savedScriptUrl) {
       try {
@@ -504,6 +608,14 @@
 
         if (data.status === "SUCCESS") {
           API_URL = data.scriptUrl;
+          
+          const liveExp = data.expiryDate || data.expiry || data.expireDate || data.Expiry_Date || data.validUntil;
+          if (liveExp) {
+            activeLicenseExpiryDate = liveExp;
+            localStorage.setItem('ga_license_expiry', activeLicenseExpiryDate);
+          }
+          startLicenseCountdownTimer();
+
           document.getElementById('licenseLoginModal').classList.add('hidden');
           updatePortalHeader(data.company || savedCompanyName);
           fetchSheetData();
@@ -536,6 +648,16 @@
         localStorage.setItem('ga_active_license', key);
         localStorage.setItem('ga_script_url', data.scriptUrl);
         localStorage.setItem('ga_company_name', data.company || "SFBD MANAGEMENT SYSTEM");
+
+        const expDate = data.expiryDate || data.expiry || data.expireDate || data.Expiry_Date || data.validUntil || null;
+        if (expDate) {
+          localStorage.setItem('ga_license_expiry', expDate);
+          activeLicenseExpiryDate = expDate;
+        } else {
+          activeLicenseExpiryDate = null;
+          localStorage.removeItem('ga_license_expiry');
+        }
+        startLicenseCountdownTimer();
         
         API_URL = data.scriptUrl;
 
@@ -569,6 +691,22 @@
     if (!API_URL) return;
     updateSyncStatus("Syncing Database...", "bg-amber-500");
     try {
+      const savedKey = localStorage.getItem('ga_active_license');
+      if (savedKey) {
+        fetch(`${LICENSE_API_URL}?key=${encodeURIComponent(savedKey)}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data) {
+              const freshExpiry = data.expiryDate || data.expiry || data.expireDate || data.Expiry_Date || null;
+              if (freshExpiry && freshExpiry !== activeLicenseExpiryDate) {
+                activeLicenseExpiryDate = freshExpiry;
+                localStorage.setItem('ga_license_expiry', freshExpiry);
+                startLicenseCountdownTimer();
+              }
+            }
+          }).catch(err => console.log("Background expiry sync error."));
+      }
+
       const res = await fetch(API_URL);
       if (res.ok) {
         const raw = await res.json();
@@ -578,6 +716,12 @@
           rawEmp = raw;
         } else if (raw && typeof raw === 'object') {
           rawEmp = raw.employees || [];
+          const topExp = raw.expiryDate || raw.expiry || raw.expireDate || raw.Expiry_Date;
+          if (topExp) {
+            activeLicenseExpiryDate = topExp;
+            localStorage.setItem('ga_license_expiry', activeLicenseExpiryDate);
+            startLicenseCountdownTimer();
+          }
           if (raw.transactions && Array.isArray(raw.transactions)) {
             transactionHistoryCloud = raw.transactions;
           }

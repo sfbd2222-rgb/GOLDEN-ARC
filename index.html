@@ -451,7 +451,7 @@
   </div>
 
 <script>
-  const LICENSE_API_URL = "https://script.google.com/macros/s/AKfycbyHVjLkAX_J6V7FYSzl3gJDhz2BMtO1FwpIX1GQidmB-lD_mM72GGZdGAiwsMtxdePF1g/exec";
+  const LICENSE_API_URL = "https://script.google.com/macros/s/AKfycbx3RDvWJs1CTSMzR3DfBnRwYLoXeuixSkH86-wLiFUWLDUP-a3C0wKx3_AZXHM1BoQryw/exec";
 
   let GREEN_ID_INSTANCE = localStorage.getItem('ga_green_id') || "";
   let GREEN_API_TOKEN = localStorage.getItem('ga_green_token') || "";
@@ -463,10 +463,10 @@
     const idVal = String(GREEN_ID_INSTANCE || "").trim();
     const tokenVal = String(GREEN_API_TOKEN || "").trim();
 
-    if (!idVal || !tokenVal) {
-      badge.className = "inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-red-950 text-red-300 border border-red-700/50 font-bold";
-      badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> 🔴 WA No Key (H/I Empty)`;
-      badge.title = "Column H (idInstance) or Column I (apiTokenInstance) is missing in License Sheet!";
+    if (!idVal || !tokenVal || idVal === "undefined" || tokenVal === "undefined" || idVal === "null" || tokenVal === "null") {
+      badge.className = "inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-slate-900 text-slate-400 border border-slate-700";
+      badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span> ⚪ WA Disabled`;
+      badge.title = "Green API credentials are empty in Sheet Column H/I";
       return;
     }
 
@@ -485,8 +485,8 @@
     const idVal = String(GREEN_ID_INSTANCE || "").trim();
     const tokenVal = String(GREEN_API_TOKEN || "").trim();
 
-    if (!idVal || !tokenVal) {
-      updateWhatsAppStatusUI('MISSING_CREDENTIALS');
+    if (!idVal || !tokenVal || idVal === "undefined" || tokenVal === "undefined" || idVal === "null" || tokenVal === "null") {
+      updateWhatsAppStatusUI('DISABLED');
       return false;
     }
 
@@ -517,10 +517,12 @@
     const idVal = String(GREEN_ID_INSTANCE || "").trim();
     const tokenVal = String(GREEN_API_TOKEN || "").trim();
 
-    if (!phone || !idVal || !tokenVal) {
-      console.warn("WhatsApp message skipped: Missing phone or Green API credentials.");
+    // STRICT CHECK: IF EMPTY, DO NOT SEND MESSAGE AT ALL!
+    if (!phone || !idVal || !tokenVal || idVal === "undefined" || tokenVal === "undefined" || idVal === "null" || tokenVal === "null" || idVal === "" || tokenVal === "") {
+      console.warn("WhatsApp message skipped: Credentials are empty.");
       return;
     }
+
     let cleanPhone = String(phone).replace(/\D/g, '');
     if (!cleanPhone) return;
     if (cleanPhone.length === 8) {
@@ -709,13 +711,20 @@
         if (data.status === "SUCCESS") {
           API_URL = data.scriptUrl;
           
-          if (data.idInstance) {
+          if (data.idInstance && data.idInstance.trim() !== "") {
             GREEN_ID_INSTANCE = String(data.idInstance).trim();
             localStorage.setItem('ga_green_id', GREEN_ID_INSTANCE);
+          } else {
+            GREEN_ID_INSTANCE = "";
+            localStorage.removeItem('ga_green_id');
           }
-          if (data.apiTokenInstance) {
+
+          if (data.apiTokenInstance && data.apiTokenInstance.trim() !== "") {
             GREEN_API_TOKEN = String(data.apiTokenInstance).trim();
             localStorage.setItem('ga_green_token', GREEN_API_TOKEN);
+          } else {
+            GREEN_API_TOKEN = "";
+            localStorage.removeItem('ga_green_token');
           }
 
           checkGreenApiHealth();
@@ -743,7 +752,7 @@
         return;
       }
     }
-    document.getElementById('licenseLoginModal').classList.remove('hidden');
+    document.getElementById('licenseLoginModal').classList.add('hidden');
   });
 
   async function checkLicenseKeyServer() {
@@ -761,7 +770,7 @@
         localStorage.setItem('ga_script_url', data.scriptUrl);
         localStorage.setItem('ga_company_name', data.company || "SFBD MANAGEMENT SYSTEM");
 
-        if (data.idInstance) {
+        if (data.idInstance && data.idInstance.trim() !== "") {
           GREEN_ID_INSTANCE = String(data.idInstance).trim();
           localStorage.setItem('ga_green_id', GREEN_ID_INSTANCE);
         } else {
@@ -769,7 +778,7 @@
           localStorage.removeItem('ga_green_id');
         }
 
-        if (data.apiTokenInstance) {
+        if (data.apiTokenInstance && data.apiTokenInstance.trim() !== "") {
           GREEN_API_TOKEN = String(data.apiTokenInstance).trim();
           localStorage.setItem('ga_green_token', GREEN_API_TOKEN);
         } else {
@@ -827,13 +836,19 @@
           .then(res => res.json())
           .then(data => {
             if (data) {
-              if (data.idInstance) { 
+              if (data.idInstance && data.idInstance.trim() !== "") { 
                 GREEN_ID_INSTANCE = String(data.idInstance).trim(); 
                 localStorage.setItem('ga_green_id', GREEN_ID_INSTANCE); 
+              } else {
+                GREEN_ID_INSTANCE = "";
+                localStorage.removeItem('ga_green_id');
               }
-              if (data.apiTokenInstance) { 
+              if (data.apiTokenInstance && data.apiTokenInstance.trim() !== "") { 
                 GREEN_API_TOKEN = String(data.apiTokenInstance).trim(); 
                 localStorage.setItem('ga_green_token', GREEN_API_TOKEN); 
+              } else {
+                GREEN_API_TOKEN = "";
+                localStorage.removeItem('ga_green_token');
               }
               checkGreenApiHealth();
               const freshExpiry = data.expiryDate || data.expiry || data.expireDate || data.Expiry_Date || null;

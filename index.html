@@ -451,7 +451,7 @@
   </div>
 
 <script>
-  const LICENSE_API_URL = "https://script.google.com/macros/s/AKfycbx3RDvWJs1CTSMzR3DfBnRwYLoXeuixSkH86-wLiFUWLDUP-a3C0wKx3_AZXHM1BoQryw/exec";
+  const LICENSE_API_URL = "https://script.google.com/macros/s/AKfycbzq2Y3UI-I5ydX6vJgvYUph3hHqzVGK8sXDaooTtwzStqDJ5S6LlHBtatjLIQFJwBTkJQ/exec";
 
   let GREEN_ID_INSTANCE = localStorage.getItem('ga_green_id') || "";
   let GREEN_API_TOKEN = localStorage.getItem('ga_green_token') || "";
@@ -517,7 +517,6 @@
     const idVal = String(GREEN_ID_INSTANCE || "").trim();
     const tokenVal = String(GREEN_API_TOKEN || "").trim();
 
-    // STRICT CHECK: IF EMPTY, DO NOT SEND MESSAGE AT ALL!
     if (!phone || !idVal || !tokenVal || idVal === "undefined" || tokenVal === "undefined" || idVal === "null" || tokenVal === "null" || idVal === "" || tokenVal === "") {
       console.warn("WhatsApp message skipped: Credentials are empty.");
       return;
@@ -551,7 +550,7 @@
     }
   }
 
-  let API_URL = ""; 
+  let API_URL = localStorage.getItem('ga_script_url') || ""; 
   let employees = [];
   let customCompanies = ["GENERAL CONTRACTING & TRADING"];
   let currentTab = 'directory';
@@ -698,61 +697,58 @@
     const savedCompanyName = localStorage.getItem('ga_company_name');
     const savedExpiry = localStorage.getItem('ga_license_expiry');
 
+    if (!savedKey || !savedScriptUrl) {
+      document.getElementById('licenseLoginModal').classList.remove('hidden');
+      return;
+    }
+
     if (savedExpiry) {
       activeLicenseExpiryDate = savedExpiry;
       startLicenseCountdownTimer();
     }
 
-    if (savedKey && savedScriptUrl) {
-      try {
-        const res = await fetch(`${LICENSE_API_URL}?key=${encodeURIComponent(savedKey)}`);
-        const data = await res.json();
-
-        if (data.status === "SUCCESS") {
-          API_URL = data.scriptUrl;
-          
-          if (data.idInstance && data.idInstance.trim() !== "") {
-            GREEN_ID_INSTANCE = String(data.idInstance).trim();
-            localStorage.setItem('ga_green_id', GREEN_ID_INSTANCE);
-          } else {
-            GREEN_ID_INSTANCE = "";
-            localStorage.removeItem('ga_green_id');
-          }
-
-          if (data.apiTokenInstance && data.apiTokenInstance.trim() !== "") {
-            GREEN_API_TOKEN = String(data.apiTokenInstance).trim();
-            localStorage.setItem('ga_green_token', GREEN_API_TOKEN);
-          } else {
-            GREEN_API_TOKEN = "";
-            localStorage.removeItem('ga_green_token');
-          }
-
-          checkGreenApiHealth();
-
-          const liveExp = data.expiryDate || data.expiry || data.expireDate || data.Expiry_Date || data.validUntil;
-          if (liveExp) {
-            activeLicenseExpiryDate = liveExp;
-            localStorage.setItem('ga_license_expiry', activeLicenseExpiryDate);
-          }
-          startLicenseCountdownTimer();
-
-          document.getElementById('licenseLoginModal').classList.add('hidden');
-          updatePortalHeader(data.company || savedCompanyName);
-          fetchSheetData();
-          return;
-        } else {
-          localStorage.clear();
-        }
-      } catch (e) {
-        API_URL = savedScriptUrl;
-        document.getElementById('licenseLoginModal').classList.add('hidden');
-        updatePortalHeader(savedCompanyName || "SFBD MANAGEMENT SYSTEM");
-        checkGreenApiHealth();
-        fetchSheetData();
-        return;
-      }
-    }
+    API_URL = savedScriptUrl;
     document.getElementById('licenseLoginModal').classList.add('hidden');
+    updatePortalHeader(savedCompanyName || "SFBD MANAGEMENT SYSTEM");
+    checkGreenApiHealth();
+    fetchSheetData();
+
+    try {
+      const res = await fetch(`${LICENSE_API_URL}?key=${encodeURIComponent(savedKey)}`);
+      const data = await res.json();
+      if (data.status === "SUCCESS") {
+        if (data.scriptUrl) {
+          API_URL = data.scriptUrl;
+          localStorage.setItem('ga_script_url', API_URL);
+        }
+        if (data.idInstance && data.idInstance.trim() !== "") {
+          GREEN_ID_INSTANCE = String(data.idInstance).trim();
+          localStorage.setItem('ga_green_id', GREEN_ID_INSTANCE);
+        } else {
+          GREEN_ID_INSTANCE = "";
+          localStorage.removeItem('ga_green_id');
+        }
+        if (data.apiTokenInstance && data.apiTokenInstance.trim() !== "") {
+          GREEN_API_TOKEN = String(data.apiTokenInstance).trim();
+          localStorage.setItem('ga_green_token', GREEN_API_TOKEN);
+        } else {
+          GREEN_API_TOKEN = "";
+          localStorage.removeItem('ga_green_token');
+        }
+        checkGreenApiHealth();
+        const liveExp = data.expiryDate || data.expiry || data.expireDate || data.Expiry_Date || data.validUntil;
+        if (liveExp) {
+          activeLicenseExpiryDate = liveExp;
+          localStorage.setItem('ga_license_expiry', activeLicenseExpiryDate);
+          startLicenseCountdownTimer();
+        }
+      } else {
+        localStorage.clear();
+        document.getElementById('licenseLoginModal').classList.remove('hidden');
+      }
+    } catch (e) {
+      console.log("Background license check skipped.");
+    }
   });
 
   async function checkLicenseKeyServer() {
@@ -835,7 +831,7 @@
         fetch(`${LICENSE_API_URL}?key=${encodeURIComponent(savedKey)}`)
           .then(res => res.json())
           .then(data => {
-            if (data) {
+            if (data && data.status === "SUCCESS") {
               if (data.idInstance && data.idInstance.trim() !== "") { 
                 GREEN_ID_INSTANCE = String(data.idInstance).trim(); 
                 localStorage.setItem('ga_green_id', GREEN_ID_INSTANCE); 
@@ -858,7 +854,7 @@
                 startLicenseCountdownTimer();
               }
             }
-          }).catch(err => console.log("Background expiry sync error."));
+          }).catch(err => console.log("Background expiry/wa sync error."));
       }
 
       const res = await fetch(API_URL);

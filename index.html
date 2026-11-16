@@ -6,8 +6,8 @@
 <title>SFBD MANAGEMENT SYSTEM</title>
 <!-- Tailwind CSS -->
 <script src="https://cdn.tailwindcss.com"></script>
-<!-- HTML2PDF Library -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<!-- SheetJS Library for Excel Download -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
   tailwind.config = {
     theme: {
@@ -51,7 +51,6 @@
         <p class="text-slate-400 text-xs">Choose your official subscription plan or enter license key to unlock.</p>
       </div>
 
-      <!-- LARGE PROMINENT PRICING PLANS -->
       <div class="space-y-2">
         <div class="text-center font-bold text-gold-400 text-xs tracking-wider uppercase flex items-center justify-center gap-1">
           <span>🏷️ Official SFBD Subscription Plans</span>
@@ -83,7 +82,6 @@
           <label class="text-slate-400 block mb-1">Enter License Key *</label>
           <input type="text" id="licenseKeyBox" placeholder="e.g. SFBD-2026-8880-A92A" class="w-full bg-slate-900 border border-slate-700 rounded p-2.5 text-white mono uppercase text-center font-bold tracking-wider">
         </div>
-        
         <button onclick="checkLicenseKeyServer()" class="w-full py-2.5 bg-gradient-to-r from-gold-600 to-gold-500 text-dark-950 font-bold rounded shadow uppercase tracking-wider">
           🔐 Verify & Connect System
         </button>
@@ -108,7 +106,6 @@
             <span id="syncStatus" class="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-700/50">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> ☁️ Cloud Active
             </span>
-            <!-- DYNAMIC GREEN API WHATSAPP STATUS BADGE -->
             <span id="waStatusBadge" class="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-slate-900 text-slate-400 border border-slate-700" title="Green API WhatsApp Integration Status">
               <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span> WA Checking...
             </span>
@@ -117,7 +114,6 @@
       </div>
 
       <div class="flex items-center gap-2 flex-wrap justify-end">
-        <!-- TOP RIGHT CORNER: LIVE SHEET E COLUMN EXPIRY COUNTDOWN -->
         <div id="licenseExpiryCard" class="px-3 py-1.5 rounded-xl bg-slate-900/90 border border-gold-500/40 shadow-md flex items-center gap-2 text-xs">
           <div class="text-right">
             <div class="text-[9px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-end gap-1">
@@ -239,8 +235,8 @@
     <section id="sec-company" class="hidden space-y-4">
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 gold-glass p-4 rounded-xl border border-gold-500/30">
         <div id="companyTabsContainer" class="flex items-center gap-2 overflow-x-auto pb-1 w-full md:w-auto"></div>
-        <button onclick="downloadCompanyPDF()" class="px-4 py-2 bg-gradient-to-r from-gold-600 to-gold-500 text-dark-950 font-bold text-xs rounded-xl shadow whitespace-nowrap flex items-center gap-1.5">
-          📥 Download Company Full Details (PDF)
+        <button onclick="downloadCompanyExcel()" class="px-4 py-2 bg-gradient-to-r from-gold-600 to-gold-500 text-dark-950 font-bold text-xs rounded-xl shadow whitespace-nowrap flex items-center gap-1.5">
+          📊 Download Company Full Details (Excel)
         </button>
       </div>
 
@@ -287,12 +283,11 @@
           <h2 class="text-base font-bold text-yellow-400">🔒 QID Renewal Review Queue (Password Protected)</h2>
           <p class="text-xs text-slate-400">Review pending QID renewals & approved history securely from database.</p>
         </div>
-        <button onclick="downloadRenewalPDF()" class="px-3 py-2 bg-gradient-to-r from-gold-600 to-gold-500 text-dark-950 font-bold text-xs rounded-xl shadow whitespace-nowrap flex items-center gap-1">
-          📥 Download Renewal Report (PDF)
+        <button onclick="downloadRenewalExcel()" class="px-3 py-2 bg-gradient-to-r from-gold-600 to-gold-500 text-dark-950 font-bold text-xs rounded-xl shadow whitespace-nowrap flex items-center gap-1">
+          📊 Download Renewal Report (Excel)
         </button>
       </div>
 
-      <!-- COUNTER SUMMARY -->
       <div class="grid grid-cols-2 gap-3">
         <div onclick="switchRenewalSubTab('pending')" class="cursor-pointer gold-glass p-3 rounded-xl border-l-4 border-yellow-500 hover:scale-[1.01] transition">
           <div class="text-[11px] text-slate-400 uppercase font-semibold">⏳ Pending Renewals</div>
@@ -304,7 +299,6 @@
         </div>
       </div>
 
-      <!-- SUB TABS & FILTERS -->
       <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-dark-900/90 p-2 rounded-xl border border-slate-800">
         <div class="flex items-center gap-2">
           <button id="ren-subtab-pending" onclick="switchRenewalSubTab('pending')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition bg-gold-500 text-dark-950 shadow">
@@ -371,11 +365,10 @@
           </div>
           <div><label class="text-slate-400 block mb-1">Note</label><textarea id="m-input-note" rows="2" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></textarea></div>
 
-          <!-- DOCUMENTS UPLOAD & VIEW SECTION (QID, PASSPORT, OTHER DOCS) -->
+          <!-- DOCUMENTS UPLOAD & VIEW SECTION -->
           <div class="space-y-2.5 pt-2 border-t border-slate-800">
             <h5 class="font-bold text-gold-400 uppercase text-[11px]">📂 Employee Documents (Photo / PDF)</h5>
             
-            <!-- QID Card -->
             <div class="bg-slate-950 p-2 rounded border border-slate-800 space-y-1">
               <div class="flex justify-between items-center">
                 <span class="text-slate-300 font-semibold">🪪 QID Card Copy</span>
@@ -384,7 +377,6 @@
               <input type="file" id="m-file-qid" accept="image/*,application/pdf" class="w-full text-[11px] text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-bold file:bg-slate-800 file:text-gold-400">
             </div>
 
-            <!-- Passport -->
             <div class="bg-slate-950 p-2 rounded border border-slate-800 space-y-1">
               <div class="flex justify-between items-center">
                 <span class="text-slate-300 font-semibold">🛂 Passport Copy</span>
@@ -393,7 +385,6 @@
               <input type="file" id="m-file-passport" accept="image/*,application/pdf" class="w-full text-[11px] text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-bold file:bg-slate-800 file:text-gold-400">
             </div>
 
-            <!-- Other Document 1 -->
             <div class="bg-slate-950 p-2 rounded border border-slate-800 space-y-1.5">
               <div class="flex justify-between items-center">
                 <span class="text-slate-300 font-semibold">📄 Other Document 1</span>
@@ -403,7 +394,6 @@
               <input type="file" id="m-file-doc1" accept="image/*,application/pdf" class="w-full text-[11px] text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-bold file:bg-slate-800 file:text-gold-400">
             </div>
 
-            <!-- Other Document 2 -->
             <div class="bg-slate-950 p-2 rounded border border-slate-800 space-y-1.5">
               <div class="flex justify-between items-center">
                 <span class="text-slate-300 font-semibold">📄 Other Document 2</span>
@@ -489,7 +479,6 @@
         <div><label class="text-slate-400 block mb-1">Note</label><textarea id="add-note" rows="2" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></textarea></div>
         <div><label class="text-slate-400 block mb-1">Total Agreed Fee (QAR)</label><input type="number" id="add-total" value="0" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white"></div>
 
-        <!-- DOCUMENTS UPLOAD IN ADD MODAL -->
         <div class="space-y-2 pt-2 border-t border-slate-800">
           <h5 class="font-bold text-gold-400 uppercase text-[11px]">📂 Upload Documents (Photo / PDF)</h5>
           <div class="grid grid-cols-2 gap-2">
@@ -645,7 +634,6 @@
   let activeLicenseExpiryDate = null;
   let countdownTimerInterval = null;
 
-  // Helper: Process File (Image compression or PDF Base64)
   function readFileAsBase64(file) {
     return new Promise((resolve) => {
       if (!file) return resolve(null);
@@ -684,7 +672,6 @@
     });
   }
 
-  // Helper: Preview Document inside Modal
   function openDocPreview(url, title) {
     if (!url) return;
     let previewUrl = url;
@@ -706,13 +693,11 @@
   function parseFormattedDateString(dateStr) {
     if (!dateStr || String(dateStr).trim() === '') return null;
     const cleanStr = String(dateStr).trim();
-    
     const dmyRegex = /^(\d{2})[\-\/](\d{2})[\-\/](\d{4})$/;
     if (dmyRegex.test(cleanStr)) {
       const parts = cleanStr.match(dmyRegex);
       return new Date(`${parts[3]}-${parts[2]}-${parts[1]}T23:59:59`);
     }
-    
     const parsed = new Date(cleanStr);
     return isNaN(parsed.getTime()) ? null : parsed;
   }
@@ -1022,7 +1007,6 @@
         employees = rawEmp.map(item => {
           const qStatus = item.qidStatus ? String(item.qidStatus).trim() : '';
           const rStatus = item.renewStatus ? String(item.renewStatus).trim() : '';
-          
           const isReview = (qStatus !== '' || rStatus !== '');
           const activeDateVal = qStatus !== '' ? qStatus : rStatus;
 
@@ -1194,7 +1178,6 @@
     const dueCount = employees.filter(e => (e.due || 0) > 0).length;
     const renewalCount = employees.filter(e => e.inRenewalReview).length;
     const dueTotal = employees.reduce((sum, e) => sum + (e.due || 0), 0);
-
     let totalTxCount = transactionHistoryCloud.length;
 
     document.getElementById('stat-total').textContent = total;
@@ -1309,13 +1292,11 @@
     `).join('');
 
     const filtered = selectedCompanyFilter === 'ALL' ? employees : employees.filter(e => (e.company||'Unassigned') === selectedCompanyFilter);
-    
     const compTotal = filtered.length;
     const compExpired = filtered.filter(e => { const d = getDaysRemaining(e.rpExDate); return d !== 999 && d < 0; }).length;
     
     document.getElementById('comp-stat-total').textContent = compTotal;
     document.getElementById('comp-stat-expired').textContent = compExpired;
-
     document.getElementById('companyGrid').innerHTML = filtered.length ? filtered.map(e => renderCardHTML(e)).join('') : `<div class="col-span-full gold-glass p-8 text-center text-slate-400">No staff found for this company.</div>`;
   }
 
@@ -1351,66 +1332,60 @@
     }).join('') : `<div class="col-span-full gold-glass p-8 text-center text-slate-400">No payment transaction history found.</div>`;
   }
 
-  function downloadCompanyPDF() {
+  // --- EXCEL DOWNLOAD FUNCTIONS (SheetJS) ---
+  function downloadCompanyExcel() {
     const filtered = selectedCompanyFilter === 'ALL' ? employees : employees.filter(e => (e.company||'Unassigned') === selectedCompanyFilter);
     if (!filtered.length) return alert("No data to download!");
 
     const compName = selectedCompanyFilter === 'ALL' ? 'All Companies' : selectedCompanyFilter;
-    const compTotal = filtered.length;
-    const compExpired = filtered.filter(e => { const d = getDaysRemaining(e.rpExDate); return d !== 999 && d < 0; }).length;
-    const currentPortalName = localStorage.getItem('ga_company_name') || 'SFBD MANAGEMENT SYSTEM';
+    
+    const excelData = filtered.map((e, index) => ({
+      "SL": index + 1,
+      "QID": e.qid,
+      "Full Name": e.name,
+      "Company": e.company || '',
+      "Gender": e.gender || '',
+      "Nationality": e.nationality || '',
+      "DOB": e.dob || '',
+      "Phone": e.phone || '',
+      "RP Issue Date": e.rpIssueDate || '',
+      "RP Expire Date": e.rpExDate || '',
+      "Coming Date": e.commingDate || '',
+      "Total Fee (QAR)": e.total || 0,
+      "Paid (QAR)": e.pay || 0,
+      "Due (QAR)": e.due || 0,
+      "Note": e.note || ''
+    }));
 
-    let htmlContent = `
-      <div style="padding: 20px; font-family: Arial, sans-serif; color: #000; background: #fff;">
-        <h2 style="text-align: center; color: #d4af37; margin-bottom: 5px;">${currentPortalName}</h2>
-        <h3 style="text-align: center; margin-top: 0; font-size: 14px;">Company Report: ${compName}</h3>
-        <p style="font-size: 11px; margin-bottom: 10px;"><strong>Total Staff:</strong> ${compTotal} | <strong>Expired QID:</strong> ${compExpired}</p>
-        <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 10px;">
-          <thead>
-            <tr style="background: #f1f5f9;">
-              <th style="border: 1px solid #cbd5e1; padding: 6px;">QID</th>
-              <th style="border: 1px solid #cbd5e1; padding: 6px;">Name</th>
-              <th style="border: 1px solid #cbd5e1; padding: 6px;">Company</th>
-              <th style="border: 1px solid #cbd5e1; padding: 6px;">Gender</th>
-              <th style="border: 1px solid #cbd5e1; padding: 6px;">Nationality</th>
-              <th style="border: 1px solid #cbd5e1; padding: 6px;">Phone</th>
-              <th style="border: 1px solid #cbd5e1; padding: 6px;">RP Expire</th>
-              <th style="border: 1px solid #cbd5e1; padding: 6px;">Due (QAR)</th>
-            </tr>
-          </thead>
-          <tbody>
-    `;
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Company Report");
+    XLSX.writeFile(workbook, `Company_Report_${compName.replace(/[^a-zA-Z0-9]/g, '_')}.xlsx`);
+  }
 
-    filtered.forEach(e => {
-      htmlContent += `
-        <tr>
-          <td style="border: 1px solid #cbd5e1; padding: 6px;">${e.qid}</td>
-          <td style="border: 1px solid #cbd5e1; padding: 6px;">${e.name}</td>
-          <td style="border: 1px solid #cbd5e1; padding: 6px;">${e.company || '-'}</td>
-          <td style="border: 1px solid #cbd5e1; padding: 6px;">${e.gender || '-'}</td>
-          <td style="border: 1px solid #cbd5e1; padding: 6px;">${e.nationality || '-'}</td>
-          <td style="border: 1px solid #cbd5e1; padding: 6px;">${e.phone || '-'}</td>
-          <td style="border: 1px solid #cbd5e1; padding: 6px;">${e.rpExDate || '-'}</td>
-          <td style="border: 1px solid #cbd5e1; padding: 6px;">${e.due || 0}</td>
-        </tr>
-      `;
-    });
+  function downloadRenewalExcel() {
+    const pendingList = employees.filter(e => e.inRenewalReview);
+    const listToPrint = renewalSubTab === 'pending' ? pendingList : completedRenewals;
 
-    htmlContent += `
-          </tbody>
-        </table>
-      </div>
-    `;
+    if (!listToPrint.length) return alert("No renewal data available to download!");
 
-    const opt = {
-      margin:       0.5,
-      filename:     `Company_Report_${compName.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`,
-      image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2 },
-      jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
-    };
+    const reportTitle = renewalSubTab === 'pending' ? 'Pending Renewal Queue' : 'Approved Renewal History';
+    
+    const excelData = listToPrint.map((item, index) => ({
+      "SL": index + 1,
+      "QID": item.qid,
+      "Name": item.name,
+      "Company": item.company || '',
+      "RP Expire Date": item.rpExDate || '',
+      "Paid (QAR)": item.pay || 0,
+      "Due (QAR)": item.due || 0,
+      "Flagged / Approved Date": formatDisplayDate(item.renewalRequestedDate || item.doneDate || '')
+    }));
 
-    html2pdf().from(htmlContent).save();
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, renewalSubTab === 'pending' ? "Pending Renewals" : "Renewal History");
+    XLSX.writeFile(workbook, `Renewal_Report_${renewalSubTab}_${new Date().toISOString().split('T')[0]}.xlsx`);
   }
 
   function switchRenewalSubTab(sub) {
@@ -1449,10 +1424,7 @@
         const days = getDaysRemaining(e.rpExDate);
         let rawDate = e.renewalRequestedDate || '';
         let displayDate = formatDisplayDate(rawDate);
-        let reqDateHtml = '';
-        if (displayDate) {
-          reqDateHtml = `📅 Flagged Date: <strong class="text-yellow-300">${displayDate}</strong>`;
-        }
+        let reqDateHtml = displayDate ? `📅 Flagged Date: <strong class="text-yellow-300">${displayDate}</strong>` : '';
         const paidAmt = e.pay || 0;
         const dueAmt = e.due || 0;
 
@@ -1477,7 +1449,6 @@
               </div>
             </div>
 
-            <!-- HIGHLIGHTED INFO GRID -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs pt-1 border-t border-slate-800/80">
               <div class="bg-slate-950/90 p-2 rounded-lg border border-yellow-500/40">
                 <span class="text-slate-400 block text-[10px] font-semibold uppercase">⏰ RP Expire Status</span>
@@ -1523,66 +1494,6 @@
         </div>
       `).join('') : `<div class="gold-glass p-8 text-center text-slate-400">No approved renewal history found.</div>`;
     }
-  }
-
-  function downloadRenewalPDF() {
-    const pendingList = employees.filter(e => e.inRenewalReview);
-    const listToPrint = renewalSubTab === 'pending' ? pendingList : completedRenewals;
-
-    if (!listToPrint.length) return alert("No renewal data available to download!");
-
-    const currentPortalName = localStorage.getItem('ga_company_name') || 'SFBD MANAGEMENT SYSTEM';
-    const reportTitle = renewalSubTab === 'pending' ? 'Pending Renewal Queue Report' : 'Approved Renewal History Report';
-
-    let htmlContent = `
-      <div style="padding: 20px; font-family: Arial, sans-serif; color: #000; background: #fff;">
-        <h2 style="text-align: center; color: #d4af37; margin-bottom: 5px;">${currentPortalName}</h2>
-        <h3 style="text-align: center; margin-top: 0; font-size: 14px;">${reportTitle}</h3>
-        <p style="font-size: 11px; margin-bottom: 10px;"><strong>Total Records:</strong> ${listToPrint.length} | <strong>Generated Date:</strong> ${formatCustomDateTime()}</p>
-        <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 10px;">
-          <thead>
-            <tr style="background: #f1f5f9;">
-              <th style="border: 1px solid #cbd5e1; padding: 6px;">QID</th>
-              <th style="border: 1px solid #cbd5e1; padding: 6px;">Name</th>
-              <th style="border: 1px solid #cbd5e1; padding: 6px;">Company</th>
-              <th style="border: 1px solid #cbd5e1; padding: 6px;">RP Expire</th>
-              <th style="border: 1px solid #cbd5e1; padding: 6px;">Paid (QAR)</th>
-              <th style="border: 1px solid #cbd5e1; padding: 6px;">Due (QAR)</th>
-              <th style="border: 1px solid #cbd5e1; padding: 6px;">Flagged/Approved Date</th>
-            </tr>
-          </thead>
-          <tbody>
-    `;
-
-    listToPrint.forEach(item => {
-      htmlContent += `
-        <tr>
-          <td style="border: 1px solid #cbd5e1; padding: 6px;">${item.qid}</td>
-          <td style="border: 1px solid #cbd5e1; padding: 6px;">${item.name}</td>
-          <td style="border: 1px solid #cbd5e1; padding: 6px;">${item.company || '-'}</td>
-          <td style="border: 1px solid #cbd5e1; padding: 6px;">${item.rpExDate || '-'}</td>
-          <td style="border: 1px solid #cbd5e1; padding: 6px;">${item.pay || 0}</td>
-          <td style="border: 1px solid #cbd5e1; padding: 6px;">${item.due || 0}</td>
-          <td style="border: 1px solid #cbd5e1; padding: 6px;">${formatDisplayDate(item.renewalRequestedDate || item.doneDate || '-')}</td>
-        </tr>
-      `;
-    });
-
-    htmlContent += `
-          </tbody>
-        </table>
-      </div>
-    `;
-
-    const opt = {
-      margin:       0.5,
-      filename:     `Renewal_Report_${renewalSubTab}_${new Date().toISOString().split('T')[0]}.pdf`,
-      image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2 },
-      jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
-    };
-
-    html2pdf().from(htmlContent).save();
   }
 
   function switchMainTab(tabName) {
@@ -1639,7 +1550,6 @@
       document.getElementById('m-input-coming').value = emp.commingDate || '';
       document.getElementById('m-input-note').value = emp.note || '';
 
-      // Clear previous file inputs
       document.getElementById('m-file-qid').value = '';
       document.getElementById('m-file-passport').value = '';
       document.getElementById('m-file-doc1').value = '';
@@ -1648,7 +1558,6 @@
       document.getElementById('m-doc2-name').value = emp.otherDoc2Url ? (emp.otherDoc2Name || '') : '';
     }
 
-    // Update Document View Buttons
     document.getElementById('m-view-qid-btn').innerHTML = emp.qidCardUrl 
       ? `<button type="button" onclick="openDocPreview('${emp.qidCardUrl}', 'QID Card - ${emp.name}')" class="px-2 py-0.5 bg-emerald-950 text-emerald-400 border border-emerald-700/50 rounded text-[10px] font-bold">👁️ View QID</button>` 
       : `<span class="text-[10px] text-slate-500">Not uploaded</span>`;
@@ -1728,7 +1637,6 @@
     emp.commingDate = document.getElementById('m-input-coming').value;
     emp.note = document.getElementById('m-input-note').value.trim();
 
-    // Read any selected files
     const qidFile = document.getElementById('m-file-qid').files[0];
     const passFile = document.getElementById('m-file-passport').files[0];
     const doc1File = document.getElementById('m-file-doc1').files[0];
@@ -1746,7 +1654,6 @@
 
     await postToSheet('addOrUpdate', { employee: emp, files: filesPayload });
 
-    // Clear file inputs after upload
     document.getElementById('m-file-qid').value = '';
     document.getElementById('m-file-passport').value = '';
     document.getElementById('m-file-doc1').value = '';
